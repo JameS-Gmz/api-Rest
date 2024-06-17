@@ -1,0 +1,19 @@
+{
+  "name": "api-boutique",
+  "version": "1.0.0",
+  "description": "Back end Boutique",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QLFJameS/api-boutique.git"
+  },
+  "author": "JameS",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/QLFJameS/api-boutique/issues"
+  },
+  "homepage": "https://github.com/QLFJameS/api-boutique#readme"
+}
