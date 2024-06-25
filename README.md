@@ -26,9 +26,9 @@ SYSTEME DE LOG :
 
 Roles : 
 
-Users / classe parent qui permet d'acceder aux download / commentaires / messageries / collections / notifications
-Developpeurs / possibilité d'upload mais verification necessaire par carte d'identitée et paiement de 5£ ?? 
-Admin / controle total
+Users : classe parent qui permet d'acceder aux download / commentaires / bibliotheque / notifications
+Developpeurs : possibilité d'upload mais verification necessaire par carte d'identitée et paiement de 5£ ?? 
+Admin : controle total
 
 
 SYSTEME D'UPLOAD ET DE DOWNLOAD :
