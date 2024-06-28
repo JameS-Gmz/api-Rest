@@ -38,6 +38,21 @@ Promo sur certains jeux
 - notation des jeux par des Users et/ou developpeurs
 
 
+# UML
+
+## Gantt Diagram
+
+```mermaid
+gantt
+    title Playforge
+    dateFormat MM-DD
+    section UML
+        Use case Diagram    : 06-25, 1d
+        Entity Diagram    : 06-26, 1d
+        MCD Diagram    : 06-26, 2d
+```
+
+## Entity Relation Diagram
 
 ````mermaid
 --- 
