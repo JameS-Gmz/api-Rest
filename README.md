@@ -53,5 +53,57 @@ name STRING
 image URL
 }
 
+Category{
+id INT
+name STRING
+updatedAt Date
+}
+
+Cart{
+id
+game_id
+user_id
+}
+
+User{
+id INT
+name STRING
+surname STRING
+username STRING
+email STRING
+password STRING
+}
+
+Role{
+id INT 
+}
+
+CategoryGame["CategoryGame(join)"]{
+        category_id
+        game_id
+    }
+
+Upload["Upload(join)"]{
+       game_id
+        user_id
+    }
+
+Comments["Comments(join)"]{
+game_id
+user_id
+title TEXT
+body TEXT
+note INT
+    }
+
+Library["Library(join)"]{
+game_id
+user_id
+    }
+
+Order["Order(join)"]{
+game_id
+user_id
+    }
 ````
 
