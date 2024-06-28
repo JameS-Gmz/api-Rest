@@ -93,5 +93,16 @@ Library["Library(join)"]{
 
 Order["Order(join)"]{
     }
+
+Category }|--|| CategoryGame : has
+Game }|--|| CategoryGame : belongs
+
+Game }|--|| Cart : contains
+Cart ||--|| User : has
+
+User }|--|| Role : has
+
+
+
 ````
 
