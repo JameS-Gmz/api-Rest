@@ -128,3 +128,59 @@ User }|--|{ Role : has
 
 ````
 
+````mermaid
+ erDiagram
+ 
+Game
+Category
+Cart
+User
+Role
+
+Game{
+id INT
+price DECIMAL
+name STRING
+image URL
+}
+
+Category{
+id INT
+name STRING
+updatedAt Date
+}
+
+Cart{
+id INT
+}
+
+User{
+id INT
+name STRING
+surname STRING
+username STRING
+email STRING
+password STRING
+}
+
+Role{
+id INT 
+}
+
+
+
+User ||--|{ Game : library
+User ||--|{ Game : comments
+User ||--|{ Game : order
+User ||--|{ Game : upload
+
+
+Category ||--|{ Game : has
+
+Game }|--|| Cart : contains
+Cart ||--|| User : has
+
+User }|--|{ Role : has
+
+````
+
