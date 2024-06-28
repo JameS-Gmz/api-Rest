@@ -103,7 +103,6 @@ Library ||--|{ Game : contains
 User ||--|{ Upload : has
 Upload ||--|{ Game : has
 
-User }|--|{ Role : has
 
 Category ||--|{ CategoryGame : has
 Game ||--|{ CategoryGame : belongs
@@ -115,6 +114,7 @@ Cart ||--|| User : has
 User ||--|{ Order : order
 Order ||--|{ Game : ordered
 
+User }|--|{ Role : has
 
 
 ````
