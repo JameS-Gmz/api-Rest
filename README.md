@@ -94,17 +94,6 @@ Library["Library(join)"]{
 Order["Order(join)"]{
     }
 
-Category ||--|{ CategoryGame : has
-Game ||--|{ CategoryGame : belongs
-
-Game }|--|| Cart : contains
-Cart ||--|| User : has
-
-User }|--|{ Role : has
-
-User ||--|{ Order : order
-Order ||--|{ Game : ordered
-
 User ||--|{ Comments : comments
 Comments ||--|{ Game : commented
 
@@ -113,6 +102,19 @@ Library ||--|{ Game : contains
 
 User ||--|{ Upload : has
 Upload ||--|{ Game : has
+
+User }|--|{ Role : has
+
+Category ||--|{ CategoryGame : has
+Game ||--|{ CategoryGame : belongs
+
+Game }|--|| Cart : contains
+Cart ||--|| User : has
+
+
+User ||--|{ Order : order
+Order ||--|{ Game : ordered
+
 
 
 ````
