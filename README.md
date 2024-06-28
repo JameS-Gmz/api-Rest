@@ -76,23 +76,31 @@ Role{
 id INT 
 }
 
-CategoryGame["CategoryGame(join)"]{
+CategoryGame["CategoryGame"]{
+categoryId INT
+gameId INT
+
     }
 
-Upload["Upload(join)"]{
+Upload["Upload"]{
+userId INT
+gameId INT
     }
 
-Comments["Comments(join)"]{
+Comments["Comments"]{
 title TEXT
 body TEXT
 note INT
     }
 
-Library["Library(join)"]{
+Library["Library"]{
 userId INT
+gameId INT
     }
 
-Order["Order(join)"]{
+Order["Order"]{
+userId INT
+gameId INT
     }
 
 User ||--|{ Comments : comments
