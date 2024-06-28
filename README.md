@@ -52,7 +52,7 @@ gantt
         MCD Diagram    : 06-26, 2d
 ```
 
-## Entity Relation Diagram
+## Entity Relation Diagram MCDUML
 
 ````mermaid
 --- 
@@ -148,6 +148,7 @@ User }|--|{ Role : has
 
 
 ````
+## Entity Relation Diagram UML
 
 ````mermaid
 ---
