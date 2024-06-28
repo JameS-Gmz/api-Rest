@@ -37,6 +37,25 @@ Promo sur certains jeux
 - espace commentaires sous chaque jeux
 - notation des jeux par des Users et/ou developpeurs
 
+'''mermaid
+ erDiagram
  
+Game
+Category
+Cart
+User
+Role
 
+Game{
+id INT
+price DECIMAL
+name STRING
+image URL
+}
+
+
+
+
+
+'''
 
