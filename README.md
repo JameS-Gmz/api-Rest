@@ -55,6 +55,7 @@ Game{
 id INT
 price DECIMAL
 name STRING
+description TEXT
 image URL
 }
 
