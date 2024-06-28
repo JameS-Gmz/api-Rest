@@ -37,7 +37,7 @@ Promo sur certains jeux
 - espace commentaires sous chaque jeux
 - notation des jeux par des Users et/ou developpeurs
 
-'''mermaid
+````mermaid
  erDiagram
  
 Game
@@ -53,9 +53,5 @@ name STRING
 image URL
 }
 
-
-
-
-
-'''
+````
 
