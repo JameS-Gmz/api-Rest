@@ -37,7 +37,12 @@ Promo sur certains jeux
 - espace commentaires sous chaque jeux
 - notation des jeux par des Users et/ou developpeurs
 
+
+
 ````mermaid
+--- 
+title : Diagramme MCDUML
+---
  erDiagram
  
 Game
@@ -129,6 +134,9 @@ User }|--|{ Role : has
 ````
 
 ````mermaid
+---
+title : Diagramme UML
+---
  erDiagram
  
 Game
