@@ -48,8 +48,8 @@ gantt
     dateFormat MM-DD
     dateFormat HH-MM
     section UML
-        Use case Diagram    : 06-25, 1h45m
-        Entity Diagram    : 06-25, 3h30m
+        Use case Diagram    :a,  06-25, 2h
+        Entity Diagram    : 06-25, 3h, after a
         MCD Diagram    : 06-26, 5h16m
 ```
 
