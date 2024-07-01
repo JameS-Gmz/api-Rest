@@ -53,12 +53,12 @@ gantt
         Pré-Production   :a1, 2024-06-25, 3d
         Production Main Task : 2024-06-28, 2d
     section Pré-Production
-        Set name/describe the Project :2024-06-25,
-        Diagram Usecase  :
-        Diagream UML :
-        Diagram MCDUML : 2024-06-26, 
-        Maquette Figma Home/Game :
-        Maquette Figma SignIn/SignUp/Library/Notifications : 2024-06-27
+        Set name/describe the Project :2024-06-25, 3h
+        Diagram Usecase  : 2h
+        Diagream UML : 2h
+        Diagram MCDUML : 2024-06-26, 4h
+        Maquette Figma Home/Game : 3h
+        Maquette Figma SignIn/SignUp/Library/Notifications : 2024-06-27, 5h
 ```
 
 ## Entity Relation Diagram UML
