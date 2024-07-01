@@ -49,7 +49,7 @@ https://app.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&la
 gantt
  title Gantt Diagram
     dateFormat MM-DD
-    hourFormat HH-MM
+    
 
     section Section
         Usecase Diagram  a1, 06-25, 3h
