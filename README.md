@@ -50,9 +50,9 @@ gantt
  title Gantt Diagram
     dateFormat MM-DD-HH-MM
     section Section
-        Usecase Diagram  :p1, 06-25, 1h30m
-        UML Diagram  :p2, p2after p1, 3h
-        MCDUML Diagram :p3, p3after p2, 4h
+        Usecase Diagram  :d1, 06-25, 1h30m
+        UML Diagram  :d2, d2after d1, 3h
+        MCDUML Diagram :d3, d3after d2, 4h
     section Another
         Task in Another :2014-01-12, 12d
         another task    :24d
