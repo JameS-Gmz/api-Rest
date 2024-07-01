@@ -48,7 +48,7 @@ https://app.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&la
 ```mermaid
 gantt
  title Gantt Diagram
-    dateFormat MM-DD
+    dateFormat MM-DD-HH-MM
     section Section
         Usecase Diagram  :p1, 06-25, 1h30m
         UML Diagram  :p2, p2after p1, 3h
