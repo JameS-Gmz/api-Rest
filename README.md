@@ -49,7 +49,7 @@ gantt
     section UML
         Use case Diagram    : 06-25
         Entity Diagram    : 06-25
-        MCD Diagram    : 06-26, 9am 4h
+        MCD Diagram    : 06-26
 ```
 
 ## Entity Relation Diagram MCDUML
