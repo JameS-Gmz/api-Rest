@@ -46,8 +46,6 @@ https://app.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&la
 ## Gantt Diagram
 
 ```mermaid
-displayMode: compact
----
 gantt
     title A Gantt Diagram
     dateFormat  YYYY-MM-DD
