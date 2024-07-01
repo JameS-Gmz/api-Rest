@@ -52,7 +52,7 @@ gantt
 
     section Section
     Pre-production   :a1, 2024-06-25, 8hh
-    Set Name/Describe the project     :a2, a2after a1, 2024-06-25, 2h
+    Set Name/Describe the project     :a2, after a1, 2024-06-25, 2h
     Diagram Usecase     :a3, 2024-06-25, 2h
     Diagram UML : a4, 2024-06-25, 1h
     Diagram UML : a5, 2024-06-26, 1h
