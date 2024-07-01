@@ -208,7 +208,7 @@ Upload }|--|| Game : has
 Category ||--|{ CategoryGame : has
 Game ||--|{ CategoryGame : belongs
 
-Game }|--|| Cart : contains
+Game }|--|{ Cart : contains
 Cart ||--|| User : has
 
 
