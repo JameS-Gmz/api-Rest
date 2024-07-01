@@ -48,11 +48,11 @@ https://app.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&la
 ```mermaid
 gantt
  title Gantt Diagram
-    dateFormat MM-DD-HH-MM
+    dateFormat MM-DD
     section Section
-        Usecase Diagram  :d1, 06-25, 1h30m
-        UML Diagram  :d2, d2after d1, 3h
-        MCDUML Diagram :d3, d3after d2, 4h
+        Usecase Diagram  a1, 06-25, 1h30m
+        UML Diagram : a2, a2after a1, 3h
+        MCDUML Diagram :a3, a3after a2, 4h
     section Another
         Task in Another :2014-01-12, 12d
         another task    :24d
