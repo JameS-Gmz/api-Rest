@@ -47,13 +47,16 @@ https://app.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&la
 
 ```mermaid
 gantt
-    title A Gantt Diagram
+    title Gantt Diagram
     dateFormat  YYYY-MM-DD
 
     section Section
     Pre-production   :a1, 2024-06-25, 8hh
-    Set Name/Descrbe the project     :a2, 2024-06-25, 2h
-    Diagram Usecase      :a3, 2024-06-25, 2h
+    Set Name/Describe the project     :a2, 2024-06-25, 2h
+    Diagram Usecase     :a3, 2024-06-25, 2h
+    Diagram UML : a4, 2024-06-25, 1h
+    Diagram UML : a5, 2024-06-26, 1h
+    Diagram MCDUML : a6, 2024-06-26, 2h
 
 ```
 
