@@ -52,9 +52,9 @@ gantt
     
 
     section Section
-        Usecase Diagram  a1, 06-25, 3h
-        UML Diagram : a2, a2after a1, 
-        MCDUML Diagram :a3, a3after a2, 
+        Usecase Diagram  a1, 06-25
+        UML Diagram : a2, a2after a1
+        MCDUML Diagram :a3, a3after a2
     section Another
         Task in Another :2014-01-12, 12d
         another task    :24d
