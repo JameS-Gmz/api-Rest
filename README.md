@@ -51,7 +51,7 @@ gantt
     dateFormat YYYY-MM-DD
     section TimeLine
         Pré-Production   :a1, 2024-06-25, 3d
-        Production Main Task : 2024-06-28, 2d
+        Production Main Task : 2d
     section Pré-Production
         Set name/describe the Project :2024-06-25 9:00, 3h
         Diagram Usecase  : 2024-06-25 13:00, 2h
