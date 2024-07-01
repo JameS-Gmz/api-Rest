@@ -49,7 +49,7 @@ https://app.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&la
 gantt
     title Gantt Diagram
     dateFormat YYYY-MM-DD
-    section Production
+    section TimeLine
         Pré-Production   :a1, 2024-06-25, 3d
         Production Main Task : 2024-06-28, 2d
     section Pré-Production
