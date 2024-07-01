@@ -47,7 +47,7 @@ https://app.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&la
 
 ```mermaid
 gantt
-Gantt Diagram
+ title Gantt Diagram
     dateFormat MM-DD
     section Section
         Usecase Diagram  :p1, 06-25, 1h30m
