@@ -51,7 +51,7 @@ gantt
     dateFormat  YYYY-MM-DD
 
     section Section
-    Pre-production   :a1, 2024-06-25, 8hh
+    Pre-production   :a1, 2024-06-25, 8h
     Set Name/Describe the project     :a2, 2024-06-25, 2h
     Diagram Usecase     :a3, 2024-06-25, 2h
     Diagram UML : a4, 2024-06-25, 1h
