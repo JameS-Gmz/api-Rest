@@ -37,7 +37,6 @@ Promo sur certains jeux
 - espace commentaires sous chaque jeux
 - notation des jeux par des Users et/ou developpeurs
 
-
 # UML
 
 ## Gantt Diagram
