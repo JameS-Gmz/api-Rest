@@ -107,18 +107,18 @@ id INT
 
 
 
-User ||--|{ Game : library
-User ||--|{ Game : comments
-User ||--|{ Game : order
-User ||--|{ Game : upload
+User }|--|{ Game : library
+User }|--|{ Game : comments
+User }|--|{ Game : order
+User }|--|{ Game : upload
 
 
-Category ||--|{ Game : has
+Category }|--|{ Game : has
 
-Game }|--|| Cart : contains
+Game }|--|{ Cart : contains
 Cart ||--|| User : has
 
-User }|--|{ Role : has
+User }|--|| Role : has
 
 ````
 
@@ -196,13 +196,13 @@ gameId INT
     }
 
 User ||--|{ Comments : comments
-Comments ||--|{ Game : commented
+Comments }|--|| Game : commented
 
 User ||--|{ Library : has
-Library ||--|{ Game : contains
+Library }|--|| Game : contains
 
 User ||--|{ Upload : has
-Upload ||--|{ Game : has
+Upload }|--|| Game : has
 
 
 Category ||--|{ CategoryGame : has
@@ -213,9 +213,9 @@ Cart ||--|| User : has
 
 
 User ||--|{ Order : order
-Order ||--|{ Game : ordered
+Order }|--|| Game : ordered
 
-User }|--|{ Role : has
+User }|--|| Role : has
 
 
 ````
