@@ -46,6 +46,7 @@ Promo sur certains jeux
 gantt
     title Playforge
     dateFormat MM-DD
+    dateFormat HH-MM
     section UML
         Use case Diagram    : 06-25, 1h45m
         Entity Diagram    : 06-25, 3h30m
