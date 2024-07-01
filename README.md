@@ -50,7 +50,7 @@ gantt
     title Gantt Diagram
     dateFormat YYYY-MM-DD
     section Production
-        Pré-Production   :a1, 2024-06-25, 3d
+        Pré-Production   :a1, 2024-06-25 8a, 3d
         Production Main Task : 2024-06-28, 2d
     section Pré-Production
         Set name/describe the Project :2024-06-25, 3h
