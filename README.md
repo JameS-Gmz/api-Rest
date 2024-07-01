@@ -51,9 +51,9 @@ gantt
     dateFormat  YYYY-MM-DD
 
     section Section
-    A task           :a1, 2014-01-01, 30d
-    Another task     :a2, 2014-01-20, 25d
-    Another one      :a3, 2014-02-10, 20d
+    A task           :a1, 2024-06-25, 3h
+    Another task     :a2, 2024-06-25, 3h
+    Another one      :a3, 2024-06-25, 5h
 
 ```
 
