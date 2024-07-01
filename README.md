@@ -47,7 +47,7 @@ gantt
     dateFormat MM-DD-HH-MM
     section UML
         Pre-production :prod1, 06-25, 4h
-        Use case Diagram    : prod 2, after prod1, 06-25,2h
+        Use case Diagram    : prod2, after prod1, 06-25,2h
         Entity Diagram    : after prod2, 06-25, 2h
         Entity Diagram    : 06-26, 1h
         MCD Diagram    : 06-26, 5h
