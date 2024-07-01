@@ -46,18 +46,16 @@ https://app.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&la
 ## Gantt Diagram
 
 ```mermaid
+displayMode: compact
+---
 gantt
- title Gantt Diagram
-    dateFormat MM-DD
-    
+    title A Gantt Diagram
+    dateFormat  YYYY-MM-DD
 
     section Section
-        Usecase Diagram  a1, 06-25
-        UML Diagram : a2, a2after a1
-        MCDUML Diagram :a3, a3after a2
-    section Another
-        Task in Another :2014-01-12, 12d
-        another task    :24d
+    A task           :a1, 2014-01-01, 30d
+    Another task     :a2, 2014-01-20, 25d
+    Another one      :a3, 2014-02-10, 20d
 
 ```
 
