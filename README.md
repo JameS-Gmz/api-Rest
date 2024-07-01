@@ -50,7 +50,7 @@ gantt
  title Gantt Diagram
     dateFormat MM-DD
     section Section
-        Usecase Diagram  a1, 06-25,
+        Usecase Diagram  a1, 06-25, 3h
         UML Diagram : a2, a2after a1, 
         MCDUML Diagram :a3, a3after a2, 
     section Another
