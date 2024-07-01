@@ -47,8 +47,10 @@ gantt
     title Playforge
     dateFormat MM-DD-HH-MM
     section UML
+        Pre-production : 06-25, 4h
         Use case Diagram    :  06-25,2h
-        Entity Diagram    : after, 06-25, 3h
+        Entity Diagram    : 06-25, 2h
+        Entity Diagram    : 06-26, 1h
         MCD Diagram    : 06-26, 5h
 ```
 
