@@ -56,9 +56,9 @@ gantt
         Set name/describe the Project :2024-06-25 9:00, 3h
         Diagram Usecase  : 2024-06-25 13:00, 2h
         Diagream UML : 2024-06-25 15:00, 2h
-        Diagram MCDUML : 2024-06-26, 4h
-        Maquette Figma Home/Game : 3h
-        Maquette Figma SignIn/SignUp/Library/Notifications : 2024-06-27, 5h
+        Diagram MCDUML : 2024-06-26 9:00, 4h
+        Maquette Figma Home/Game : 2024-06-26 14:00, 3h
+        Maquette Figma SignIn/SignUp/Library/Notifications : 2024-06-27 9:00, 5h
 ```
 
 ## Entity Relation Diagram UML
