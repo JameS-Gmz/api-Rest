@@ -45,7 +45,7 @@ Promo sur certains jeux
 ```mermaid
 gantt
     title Playforge
-    dateFormat MM-DD-HH
+    dateFormat MM-DD
     section UML
         Use case Diagram    : 06-25
         Entity Diagram    : 06-25
