@@ -47,14 +47,16 @@ https://app.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000ff&edit=_blank&la
 
 ```mermaid
 gantt
-    title Playforge
-    dateFormat MM-DD-HH-MM
+     Gantt Diagram
+    dateFormat MM-DD
     section Section
-        Pre-production :p1, 06-25, 4h
-        Use case Diagram    : p2, after p1, 06-25,2h
-        Entity Diagram    : after p2, 06-25, 2h
-        Entity Diagram    : 06-26, 1h
-        MCD Diagram    : 06-26, 5h
+        Usecase Diagram  :p1, 06-25, 1h30m
+        UML Diagram  :p2, p2after p1, 3h
+        MCDUML Diagram :p3, p3after p2, 4h
+    section Another
+        Task in Another :2014-01-12, 12d
+        another task    :24d
+
 ```
 
 ## Entity Relation Diagram UML
