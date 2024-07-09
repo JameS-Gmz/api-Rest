@@ -5,9 +5,9 @@ const sentance : String = "Good Good"
 console.log(sentance)
 
 const app = express();
-import{ Game } from "./database/Game.js";
+import{ Game } from "./Models/Game.js";
 import { Op, Optional, or } from "sequelize"
-import { User, UserEntity } from './database/User.js';
+import { User, UserEntity } from './Models/User.js';
 
 app.use(express.json());
 

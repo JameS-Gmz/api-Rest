@@ -1,5 +1,5 @@
 import { Sequelize, DataTypes, Model } from "sequelize";
-import { Game } from "./database/Game.js";
+import { Game } from "./Models/Game.js";
 // define tables
 
 const login = {
