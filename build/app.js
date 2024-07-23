@@ -2,9 +2,9 @@ import express from "express";
 const sentance = "Good Good";
 console.log(sentance);
 const app = express();
-import { Game } from "./database/Game.js";
-import { Op } from "sequelize";
-import { User } from './database/User.js';
+import { Game } from "./Models/Game.js";
+import { Op, } from "sequelize";
+import { User } from './Models/User.js';
 app.use(express.json());
 // Toutes les routes Post //
 // route pour créer un jeu

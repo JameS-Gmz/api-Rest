@@ -6,8 +6,8 @@ console.log(sentance)
 
 const app = express();
 import{ Game } from "./Models/Game.js";
-import { Op, Optional, or } from "sequelize"
-import { User, UserEntity } from './Models/User.js';
+import { Op,} from "sequelize"
+import { User} from './Models/User.js';
 
 app.use(express.json());
 
@@ -41,7 +41,6 @@ app.post("/signup", async (req: Request, res: Response) => {
 
     res.status(200).json(user);
 })
-
 
 //route pour recuperer tous les jeux
 app.get("/games", async (req: Request, res: Response) => {
@@ -147,6 +146,8 @@ app.delete("/game/delete/:name", async (req: Request, res: Response) => {
 app.get("/game/stock/:id", async (req: Request, res: Response) => {
     const id = req.params.id
 })
+
+
 
 app.listen(9090, () => {
     console.log("Server on port 9090")

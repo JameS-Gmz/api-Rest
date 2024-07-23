@@ -2,8 +2,8 @@ import { Sequelize } from "sequelize";
 // define tables
 const login = {
     database: "PlayForge",
-    username: "playadmin",
-    password: "playadmin"
+    username: "playAdmin",
+    password: "playAdmin"
 };
 export const sequelize = new Sequelize(login.database, login.username, login.password, {
     host: 'localhost',
@@ -15,6 +15,9 @@ sequelize.authenticate()
     .catch((error) => console.log(error));
 sequelize.sync({ force: true })
     .then(() => {
+    const Game = require("./Game.ts");
+    const game = new Game();
     console.log("Les modéles et les tables sont synchronisés");
+    console.log(game);
 })
     .catch((error) => (error));

@@ -1,6 +1,13 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, INTEGER } from "sequelize";
 import { sequelize } from "../database.js";
+import { Game } from "./Game.js";
+import { User } from "./User.js";
+export const Cart = sequelize.define("Cart", {
+    quantity : INTEGER
+});
 
-export const Cart = sequelize.define("Category", {
-    id: DataTypes.INTEGER,
-})
+Cart.belongsToMany(Game,{through:"GameCart"});
+Game.belongsToMany(Cart,{through:"GameCart"});
+
+User.hasOne(Cart);
+Cart.belongsTo(User);

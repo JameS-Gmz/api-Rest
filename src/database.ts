@@ -5,8 +5,8 @@ import { Game } from "./Models/Game.js";
 const login = {
 
     database: "PlayForge",
-    username: "playadmin",
-    password: "playadmin"
+    username: "playAdmin",
+    password: "playAdmin"
 
 };
 
