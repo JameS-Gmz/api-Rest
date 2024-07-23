@@ -1,7 +1,7 @@
 import { STRING, TEXT } from "sequelize";
 import { sequelize } from "../database.js";
 import { Game } from "./Game.js";
-export const Status = sequelize.define("Status", {
+export const Platform = sequelize.define("Plateform", {
     name: {
         type: STRING(100),
         validate: {
@@ -10,5 +10,5 @@ export const Status = sequelize.define("Status", {
     },
     description: TEXT('tiny')
 });
-Status.hasMany(Game);
-Game.hasOne(Status);
+Game.belongsToMany(Platform, { through: "GamePlateform" });
+Platform.belongsToMany(Game, { through: "GamePlateform" });

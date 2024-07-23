@@ -3,7 +3,12 @@ import { sequelize } from "../database.js";
 import { Game } from "./Game.js";
 import { User } from "./User.js";
 export const Cart = sequelize.define("Cart", {
-    quantity: INTEGER
+    quantity: {
+        type: INTEGER,
+        validate: {
+            notNull: true
+        }
+    }
 });
 Cart.belongsToMany(Game, { through: "GameCart" });
 Game.belongsToMany(Cart, { through: "GameCart" });

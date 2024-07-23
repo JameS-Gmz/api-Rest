@@ -1,136 +1,116 @@
-import { Request, Response} from 'express';
+import { Request, Response } from 'express';
 import express from "express";
+import { Game, GameRoute } from "./Models/Game.js";
+import { Op } from "sequelize"
+import { User } from './Models/User.js';
+import { Controller } from './Models/Controller.js';
+import { Tag } from './Models/Tag.js';
+import { Status } from './Models/Status.js';
+import { Platform } from './Models/Platform.js';
+import { Genre } from './Models/Genre.js';
 
-const sentance : String = "Good Good"
+
+const sentance: String = "Good Good"
 console.log(sentance)
-
 const app = express();
-import{ Game } from "./Models/Game.js";
-import { Op,} from "sequelize"
-import { User} from './Models/User.js';
-
 app.use(express.json());
 
-// Toutes les routes Post //
-
-// route pour créer un jeu
-app.post("/game", async (req: Request, res: Response) => {
-    const newGame = req.body;
-
-    const game = await Game.create({
-
-        name: newGame.name,
-        price: newGame.price,
-        body: newGame.body,
-        stock: newGame.stock
-    })
-    res.status(200).json(game);
-})
+// Limit of the Post//
 
 // route pour créer un user
-app.post("/signup", async (req: Request, res: Response) => {
+app.post("/register", async (req: Request, res: Response) => {
 
     const newUser = req.body;
     const user = await User.create({
-        firstname : newUser.name,
-        lastname: newUser.lastname,
+
         username: newUser.username,
-        email:newUser.email,
-        password:newUser.password
-    })
-
+        name : newUser.name,
+        email: newUser.email,
+        password: newUser.password,
+        avatar: newUser.avatar,
+        bio: newUser.bio,
+    }).catch((error: Error) => console.log(error))
     res.status(200).json(user);
-})
-
-//route pour recuperer tous les jeux
-app.get("/games", async (req: Request, res: Response) => {
-    const games = await Game.findAll()
-    res.status(200).json(games)
-})
-
-//route qui recupere un produit avec soit l'id soit le name
-app.get("/game/:identifier", async (req: Request, res: Response) => {
-    const identifier = req.params.identifier
-
-    const game = await Game.findOne({
-        where: {
-            [Op.or]: [{ name: identifier }, { id: identifier }],
-        }
-    })
-
-    res.status(200).json(game)
-})
-
-//route qui recupere un produit uniquement avec son ID
-app.get("/game/id/:id", async (req: Request, res: Response) => {
-    const game_id = req.params.id
-    const game = await Game.findByPk(game_id)
-
-    res.status(200).json(game)
-})
-
-//route qui recupere un produit uniquement avec son name
-app.get("/game/name/:name", async (req: Request, res: Response) => {
-    const game_name = req.params.name
-
-    const game = await Game.findAll({
-        where: {
-            name: game_name
-        }
-    })
-    res.status(200).json(game)
-})
-
-//route qui recupere des produits avec un stock minimum
-app.get("/games/stock/:min", async (req: Request, res: Response) => {
-    const min = req.params.min
-
-    const games = await Game.findAll({
-        where: {
-            stock: {
-                [Op.gte]: min
-            }
-        }
-    })
-    res.status(200).json(games)
-})
-
-//route qui recupere des produits selon une intervalle de pris definis par l'utilisateur
-
-app.get("/games/price/:min/:max", async (req: Request, res: Response) => {
-    const min = req.params.min;
-    const max = req.params.max;
-
-    const games = await Game.findAll({
-        where: {
-            price: {
-                [Op.between]: [min, max]
-            }
-        }
-    })
-    res.status(200).json(games)
-})
-
-app.delete("/games/:text", async (req: Request, res: Response) => {
-    const text = req.params.text;
-
-
-    const nbDeletedGames = await Game.destroy({
-        where: {
-
-            [Op.or]: [
-                { id: isNaN(Number(text)) ? 0 : text },//operateur ternaire => const r == conditions? valretour1 : valretour2
-                { name: text }
-            ]
-        }
-    });
-
-    if (nbDeletedGames == 0) {
-        res.status(404).json("Aucun produit trouvé")
-    } else {
-        res.status(200).json("Tous les produits contenant le mot ou l'id suivant ont été supprimés : " + text);
-    }
 });
+
+//route pour créer un Controller via l'admin
+app.post("/admin/controller", async (req: Request, res: Response) => {
+
+    const newController = req.body;
+    const controller = await Controller.create({
+
+        name: newController.name,
+        description: newController.description
+
+    }).catch((error: Error) => console.log(error))
+    res.status(200).json(controller);
+});
+
+//route pour créer un Tag via l'Admin
+app.post("/admin/tag", async (req: Request, res: Response) => {
+
+    const newTag = req.body;
+    const tag = await Tag.create({
+
+        name: newTag.name,
+        description: newTag.description
+
+    }).catch((error: Error) => console.log(error))
+    res.status(200).json(tag);
+});
+
+// routes
+app.use('/game',GameRoute);
+
+
+
+//route pour créer un Status via l'Admin
+app.post("/admin/status", async (req: Request, res: Response) => {
+
+    const newStatus = req.body;
+    const status = await Status.create({
+
+        name: newStatus.name,
+        description: newStatus.description
+
+    }).catch((error: Error) => console.log(error))
+    res.status(200).json(status);
+});
+
+//route pour créer une Platform via l'Admin
+app.post("/admin/platform", async (req: Request, res: Response) => {
+
+    const newPlatform = req.body;
+    const platform = await Platform.create({
+
+        name: newPlatform.name,
+        description: newPlatform.description
+
+    }).catch((error: Error) => console.log(error))
+    res.status(200).json(platform);
+});
+
+//route pour créer un genre via l'Admin
+app.post("/admin/genre", async (req: Request, res: Response) => {
+
+    const newGenre = req.body;
+    const genre = await Genre.create({
+
+        name: newGenre.name,
+        description: newGenre.description
+
+    }).catch((error: Error) => console.log(error))
+    res.status(200).json(genre);
+});
+
+
+// Limit of the Post//
+
+
+
+
+
+
 
 //route qui supprime un produit selon son name
 app.delete("/game/delete/:name", async (req: Request, res: Response) => {

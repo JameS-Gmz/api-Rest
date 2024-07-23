@@ -1,5 +1,4 @@
 import { Sequelize, DataTypes, Model } from "sequelize";
-import { Game } from "./Models/Game.js";
 // define tables
 
 const login = {
@@ -23,12 +22,9 @@ sequelize.authenticate()
 
 sequelize.sync({ force: true })
 .then(() => {
-    const Game = require("./Game.ts")
-    const game = new Game()
     console.log("Les modéles et les tables sont synchronisés")
-    console.log(game)
 })
-.catch((error: Error) => (error));
+.catch((error: Error) => console.log(error));
 
 
     

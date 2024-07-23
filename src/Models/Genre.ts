@@ -1,9 +1,16 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, INTEGER, NUMBER, STRING, TEXT } from "sequelize";
 import { sequelize } from "../database.js";
 import { Game } from "./Game.js";
 
 export const Genre = sequelize.define("Genre", {
-   
+
+    name : {
+        type : STRING(100),
+        validate : {
+            notNull : false
+        }
+    },
+    description : TEXT('tiny')
 });
 
 
