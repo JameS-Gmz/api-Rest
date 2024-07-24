@@ -162,25 +162,40 @@ GameRoute.get("/price/:min/:max", async (req, res) => {
         console.log(error);
     }
 })
-
-GameRoute.delete("/:title", async (req, res) => {
+//route qui supprime un jeu selon son id
+GameRoute.delete("/delete/:id", async (req, res) => {
     try {
-        const title = req.params.title;
+        const id = req.params.id;
 
         const nbDeletedGames = await Game.destroy({
             where: {
 
-                id: isNaN(Number(title)) ? 0 : title,//operateur ternaire => const r == conditions? valretour1 : valretour2
+                id: isNaN(Number(id)) ? 0 : id,//operateur ternaire => const r == conditions? valretour1 : valretour2
             }
         });
 
         if (nbDeletedGames == 0) {
             res.status(404).json("Aucun produit trouvé");
         } else {
-            res.status(200).json("Tous les produits contenant le mot ou l'id suivant ont été supprimés : " + title);
+            res.status(200).json("Tous les produits contenant le mot ou l'id suivant ont été supprimés : " + id);
         }
 
     } catch (error) {
         console.log(error);
     }
-})
+});
+
+//route qui supprime un jeu selon son titre
+GameRoute.delete("/game/delete/:title", async (req, res) => {
+    try {
+        const gamename = req.params.title;
+    const deletegame = await Game.destroy({
+        where: {
+            title: gamename
+        }
+    })
+    res.status(200).json("le produit suivant est supprimer : " + deletegame)
+    } catch (error) {
+        console.log(error)
+    }
+});

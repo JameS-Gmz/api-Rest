@@ -106,29 +106,6 @@ app.post("/admin/genre", async (req: Request, res: Response) => {
 
 // Limit of the Post//
 
-
-
-
-
-
-
-//route qui supprime un produit selon son name
-app.delete("/game/delete/:name", async (req: Request, res: Response) => {
-    const gamename = req.params.name;
-    const deletegame = await Game.destroy({
-        where: {
-            name: gamename
-        }
-    })
-    res.status(200).json("le produit suivant est supprimer : " + deletegame)
-})
-
-app.get("/game/stock/:id", async (req: Request, res: Response) => {
-    const id = req.params.id
-})
-
-
-
 app.listen(9090, () => {
     console.log("Server on port 9090")
 })
