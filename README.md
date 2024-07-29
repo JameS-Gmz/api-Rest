@@ -157,12 +157,12 @@ Tag}|--|{ Game : gameTag
 Controller}|--|{ Game : gameController
 Platform}|--|{ Game : gamePlatform
 
-Status ||--|{Game : has
+Status ||--|{ Game : has
 Game ||--|| Status : belong
 
 
-Language ||--|{ :has
-Game||--|{Language:belong
+Language ||--|{ Game : has
+Game||--|{Language : belong
 
 
 Game }|--|{ Cart : contains
