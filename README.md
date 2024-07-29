@@ -300,8 +300,21 @@ User ||--|{ Upload : has
 Upload }|--|| Game : has
 
 
-Category ||--|{ CategoryGame : has
-Game ||--|{ CategoryGame : belongs
+Platform||--|{ GamePlatform : has
+Game ||--|{ GamePlatform : belongs
+
+Controller||--|{ GameController : has
+Game ||--|{ GameController : belongs
+
+Tag||--|{ GameTag : has
+Game ||--|{ GameTag : belongs
+
+Genre||--|{ GameGenre : has
+Game ||--|{ GameGenre : belongs
+
+Status ||--|{ Game
+
+Language ||--|{ Game
 
 Game }|--|{ Cart : contains
 Cart ||--|| User : has
