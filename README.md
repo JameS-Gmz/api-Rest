@@ -316,9 +316,9 @@ Game ||--|{ GameTag : belongs
 Genre||--|{ GameGenre : has
 Game ||--|{ GameGenre : belongs
 
-Status ||--|{ Game
+Status ||--|{ Game : has
 
-Language ||--|{ Game
+Language ||--|{ Game : has
 
 Game }|--|{ Cart : contains
 Cart ||--|| User : has
