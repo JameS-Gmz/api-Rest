@@ -157,8 +157,8 @@ Tag}|--|{ Game : gameTag
 Controller}|--|{ Game : gameController
 Platform}|--|{ Game : gamePlatform
 
-Status ||--|{Game :has
-Game ||--|| Status:belong
+Status ||--|{Game : has
+Game ||--|| Status : belong
 
 
 Language ||--|{ :has
