@@ -158,11 +158,11 @@ Controller}|--|{ Game : gameController
 Platform}|--|{ Game : gamePlatform
 
 Status ||--|{ Game : has
-Game ||--|| Status : belong
+
 
 
 Language ||--|{ Game : has
-Game||--|{Language : belong
+
 
 
 Game }|--|{ Cart : contains
