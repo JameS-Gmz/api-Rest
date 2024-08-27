@@ -76,7 +76,12 @@ title : Diagramme UML
  erDiagram
  
 Game
-Category
+Status
+Language
+Genre
+Tag
+Platform
+Controller
 Cart
 User
 Role
@@ -88,10 +93,40 @@ name STRING
 image URL
 }
 
-Category{
+Status{
 id INT
 name STRING
-updatedAt Date
+description STRING
+}
+
+Language{
+id INT
+name STRING
+description STRING
+}
+
+Genre{
+id INT
+name STRING
+description STRING
+}
+
+Tag {
+id INT
+name STRING
+description STRING
+}
+
+Controller{
+id INT
+name STRING
+description STRING
+}
+
+Platform{
+id INT
+name STRING
+description STRING
 }
 
 Cart{
@@ -111,15 +146,24 @@ Role{
 id INT 
 }
 
-
-
 User }|--|{ Game : library
 User }|--|{ Game : comments
 User }|--|{ Game : order
 User }|--|{ Game : upload
 
 
-Category }|--|{ Game : has
+Genre}|--|{ Game : gameGenre
+Tag}|--|{ Game : gameTag
+Controller}|--|{ Game : gameController
+Platform}|--|{ Game : gamePlatform
+
+Status ||--|{ Game : has
+
+
+
+Language ||--|{ Game : has
+
+
 
 Game }|--|{ Cart : contains
 Cart ||--|| User : has
@@ -138,7 +182,12 @@ title : Diagramme MCDUML
  erDiagram
  
 Game
-Category
+Status
+Language
+Genre
+Tag
+Platform
+Controller
 Cart
 User
 Role
@@ -151,10 +200,40 @@ description TEXT
 image URL
 }
 
-Category{
+Status{
 id INT
 name STRING
-updatedAt Date
+description STRING
+}
+
+Language{
+id INT
+name STRING
+description STRING
+}
+
+Genre{
+id INT
+name STRING
+description STRING
+}
+
+Tag {
+id INT
+name STRING
+description STRING
+}
+
+Controller{
+id INT
+name STRING
+description STRING
+}
+
+Platform{
+id INT
+name STRING
+description STRING
 }
 
 Cart{
@@ -174,10 +253,24 @@ Role{
 id INT 
 }
 
-CategoryGame["CategoryGame"]{
-categoryId INT
+GameController["GameController"]{
+controllerId INT
 gameId INT
+    }
 
+GameTag["GameTag"]{
+controllerId INT
+gameId INT
+    }
+
+GamePlatform["GamePlatform"]{
+controllerId INT
+gameId INT
+    }
+
+GameGenre["GameGenre"]{
+controllerId INT
+gameId INT
     }
 
 Upload["Upload"]{
@@ -211,8 +304,21 @@ User ||--|{ Upload : has
 Upload }|--|| Game : has
 
 
-Category ||--|{ CategoryGame : has
-Game ||--|{ CategoryGame : belongs
+Platform||--|{ GamePlatform : has
+Game ||--|{ GamePlatform : belongs
+
+Controller||--|{ GameController : has
+Game ||--|{ GameController : belongs
+
+Tag||--|{ GameTag : has
+Game ||--|{ GameTag : belongs
+
+Genre||--|{ GameGenre : has
+Game ||--|{ GameGenre : belongs
+
+Status ||--|{ Game : has
+
+Language ||--|{ Game : has
 
 Game }|--|{ Cart : contains
 Cart ||--|| User : has
