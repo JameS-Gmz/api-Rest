@@ -4,30 +4,28 @@ import { User } from "./User.js";
 export const Game = sequelize.define("Game", {
     title: {
         type: STRING(100),
-        validate: {
-            notNull: false
-        }
+        allowNull: false,
     },
     price: {
         type: DECIMAL,
+        allowNull: false,
         validate: {
             max: 50,
+            min: 0,
         }
     },
-    creator: {
+    authorStudio: {
         type: STRING,
-        validate: {
-            notNull: false
-        }
+        allowNull: true,
     },
-    rating: {
-        type: DECIMAL,
-        validate: {
-            max: 10,
-            min: 0
-        }
+    madewith: {
+        type: STRING,
+        allowNull: true,
     },
-    description: STRING(255)
+    description: {
+        type: STRING(255),
+        allowNull: true,
+    },
 });
 // Relation behind Game and other and creation of all join queries//
 Game.belongsToMany(User, { through: "Comment" });
@@ -47,14 +45,15 @@ GameRoute.post('/new', async (req, res) => {
         const game = await Game.create({
             title: newGame.title,
             price: newGame.price,
-            creator: newGame.creator,
-            rating: newGame.rating,
+            authorStudio: newGame.authorStudio,
+            madewith: newGame.madewith,
             description: newGame.description
-        }).catch((error) => console.log(error));
-        res.json(game);
+        });
+        console.log('Jeu créé:', game);
+        res.status(201).json(game); // 201 status for created resource
     }
     catch (error) {
-        console.log(error);
+        res.status(500).json({ error: 'Failed to create the game' });
     }
 });
 GameRoute.get("/AllGames", async (req, res) => {
@@ -142,20 +141,36 @@ GameRoute.get("/price/:min/:max", async (req, res) => {
         console.log(error);
     }
 });
-GameRoute.delete("/:title", async (req, res) => {
+//route qui supprime un jeu selon son id
+GameRoute.delete("/delete/:id", async (req, res) => {
     try {
-        const title = req.params.title;
+        const id = req.params.id;
         const nbDeletedGames = await Game.destroy({
             where: {
-                id: isNaN(Number(title)) ? 0 : title, //operateur ternaire => const r == conditions? valretour1 : valretour2
+                id: isNaN(Number(id)) ? 0 : id, //operateur ternaire => const r == conditions? valretour1 : valretour2
             }
         });
         if (nbDeletedGames == 0) {
             res.status(404).json("Aucun produit trouvé");
         }
         else {
-            res.status(200).json("Tous les produits contenant le mot ou l'id suivant ont été supprimés : " + title);
+            res.status(200).json("Tous les produits contenant le mot ou l'id suivant ont été supprimés : " + id);
         }
+    }
+    catch (error) {
+        console.log(error);
+    }
+});
+//route qui supprime un jeu selon son titre
+GameRoute.delete("/game/delete/:title", async (req, res) => {
+    try {
+        const gamename = req.params.title;
+        const deletegame = await Game.destroy({
+            where: {
+                title: gamename
+            }
+        });
+        res.status(200).json("le produit suivant est supprimer : " + deletegame);
     }
     catch (error) {
         console.log(error);

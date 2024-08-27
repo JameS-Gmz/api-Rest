@@ -1,16 +1,22 @@
 import express from "express";
-import { Game, GameRoute } from "./Models/Game.js";
+import { GameRoute } from "./Models/Game.js";
 import { User } from './Models/User.js';
 import { Controller } from './Models/Controller.js';
-import { Tag } from './Models/Tag.js';
+import { Tag, TagRoute } from './Models/Tag.js';
 import { Status } from './Models/Status.js';
 import { Platform } from './Models/Platform.js';
-import { Genre } from './Models/Genre.js';
+import { Genre, GenreRoute } from './Models/Genre.js';
 const sentance = "Good Good";
 console.log(sentance);
 const app = express();
 app.use(express.json());
-// Limit of the Post//
+// error failed to fetch --> Cors head
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Ou spécifiez le domaine explicitement
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+});
 // route pour créer un user
 app.post("/register", async (req, res) => {
     const newUser = req.body;
@@ -44,6 +50,8 @@ app.post("/admin/tag", async (req, res) => {
 });
 // routes
 app.use('/game', GameRoute);
+app.use('/genre', GenreRoute);
+app.use('/tag', TagRoute);
 //route pour créer un Status via l'Admin
 app.post("/admin/status", async (req, res) => {
     const newStatus = req.body;
@@ -72,19 +80,6 @@ app.post("/admin/genre", async (req, res) => {
     res.status(200).json(genre);
 });
 // Limit of the Post//
-//route qui supprime un produit selon son name
-app.delete("/game/delete/:name", async (req, res) => {
-    const gamename = req.params.name;
-    const deletegame = await Game.destroy({
-        where: {
-            name: gamename
-        }
-    });
-    res.status(200).json("le produit suivant est supprimer : " + deletegame);
-});
-app.get("/game/stock/:id", async (req, res) => {
-    const id = req.params.id;
-});
 app.listen(9090, () => {
     console.log("Server on port 9090");
 });

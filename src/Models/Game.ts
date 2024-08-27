@@ -5,35 +5,31 @@ import { User } from "./User.js";
 export const Game = sequelize.define("Game", {
     title: {
         type: STRING(100),
-        validate: {
-            notNull: false
-        }
+        allowNull: false,
     },
     price: {
         type: DECIMAL,
+        allowNull: false,
         validate: {
             max: 50,
-
+            min: 0,
         }
     },
-    creator: {
+    authorStudio: {
         type: STRING,
-        validate: {
-            notNull: false
-        }
+        allowNull: true,
     },
-    rating: {
-        type: DECIMAL,
-        validate: {
-            max: 10,
-            min: 0
-        }
+    madewith: {
+        type: STRING,
+        allowNull: true,  
     },
-    description: STRING(255)
+    description: {
+        type: STRING(255),
+        allowNull: true,
+    },
 });
 
 // Relation behind Game and other and creation of all join queries//
-
 
 Game.belongsToMany(User, { through: "Comment" });
 User.belongsToMany(Game, { through: "Comment" });
@@ -60,14 +56,15 @@ GameRoute.post('/new', async (req, res) => {
 
         title: newGame.title,
         price: newGame.price,
-        creator: newGame.creator,
-        rating: newGame.rating,
+        authorStudio: newGame.authorStudio,
+        madewith: newGame.madewith,
         description: newGame.description
 
-    }).catch((error: Error) => console.log(error))
-    res.json(game);
+    })
+    console.log('Jeu créé:', game);
+    res.status(201).json(game); // 201 status for created resource
   } catch (error) {
-    console.log(error);
+    res.status(500).json({ error: 'Failed to create the game' });
   }
 });
 

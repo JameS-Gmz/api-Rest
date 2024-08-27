@@ -5,7 +5,7 @@ export const Role = sequelize.define("Role", {
     name: {
         type: STRING(100),
         validate: {
-            notNull: true
+            notNull: false
         }
     },
     description: STRING(255)

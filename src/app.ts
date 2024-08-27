@@ -4,10 +4,10 @@ import { Game, GameRoute } from "./Models/Game.js";
 import { Op } from "sequelize"
 import { User } from './Models/User.js';
 import { Controller } from './Models/Controller.js';
-import { Tag } from './Models/Tag.js';
+import { Tag, TagRoute } from './Models/Tag.js';
 import { Status } from './Models/Status.js';
 import { Platform } from './Models/Platform.js';
-import { Genre } from './Models/Genre.js';
+import { Genre, GenreRoute } from './Models/Genre.js';
 
 
 const sentance: String = "Good Good"
@@ -15,7 +15,15 @@ console.log(sentance)
 const app = express();
 app.use(express.json());
 
-// Limit of the Post//
+// error failed to fetch --> Cors head
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Ou spécifiez le domaine explicitement
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+  });
+
+
 
 // route pour créer un user
 app.post("/register", async (req: Request, res: Response) => {
@@ -61,7 +69,8 @@ app.post("/admin/tag", async (req: Request, res: Response) => {
 
 // routes
 app.use('/game',GameRoute);
-
+app.use('/genre',GenreRoute);
+app.use('/tag',TagRoute);
 
 
 //route pour créer un Status via l'Admin
