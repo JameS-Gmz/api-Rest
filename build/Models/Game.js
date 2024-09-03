@@ -1,8 +1,8 @@
-import { DOUBLE, Op, STRING } from "sequelize";
 import { sequelize } from "../database.js";
+import { DOUBLE, Op, STRING } from "sequelize";
 import { User } from "./User.js";
 import { Router } from 'express';
-import { Genre } from "./Genre.js";
+export const GameRoute = Router();
 export const Game = sequelize.define("Game", {
     title: {
         type: STRING(100),
@@ -29,8 +29,6 @@ export const Game = sequelize.define("Game", {
         allowNull: true,
     },
 });
-Genre.belongsToMany(Game, { through: "GameGenre" });
-Game.belongsToMany(Genre, { through: "GameGenre" });
 Game.belongsToMany(User, { through: "Comment" });
 User.belongsToMany(Game, { through: "Comment" });
 Game.belongsToMany(User, { through: "Library" });
@@ -39,7 +37,6 @@ Game.belongsToMany(User, { through: "Upload" });
 User.belongsToMany(Game, { through: "Upload" });
 User.belongsToMany(Game, { through: "Order" });
 Game.belongsToMany(User, { through: "Order" });
-export const GameRoute = Router();
 // route pour créer un jeu
 GameRoute.post('/new', async (req, res) => {
     try {

@@ -1,18 +1,17 @@
-import { STRING, TEXT } from "sequelize";
 import { sequelize } from "../database.js";
 import { Game } from "./Game.js";
+import { DataTypes, TEXT } from "sequelize";
 import { Router } from "express";
+export const GenreRoute = Router();
 export const Genre = sequelize.define("Genre", {
     name: {
-        type: STRING(100),
+        type: DataTypes.STRING,
         validate: {
             notNull: false
         }
     },
     description: TEXT
 });
-export const GenreRoute = Router();
-// Définir les genres avec leur description
 GenreRoute.post('/new', async (req, res) => {
     const genres = [
         { name: 'FPS', description: 'First-Person Shooter' },

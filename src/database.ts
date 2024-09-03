@@ -1,4 +1,4 @@
-import { Sequelize, DataTypes, Model } from "sequelize";
+import { Sequelize } from "sequelize";
 // define tables
 
 const login = {
@@ -18,7 +18,6 @@ export const sequelize = new Sequelize(login.database, login.username, login.pas
 sequelize.authenticate()
     .then(() => console.log("Connecté à la BDD : PlayForge"))
     .catch((error: Error) => console.log(error));
-
 
 sequelize.sync({ force: true })
 .then(() => {

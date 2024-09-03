@@ -1,19 +1,19 @@
-import { STRING, TEXT } from "sequelize";
+import { DataTypes } from "sequelize";
 import { sequelize } from "../database.js";
 import { Game } from "./Game.js";
 import { Router } from "express";
+export const TagRoute = Router();
 export const Tag = sequelize.define("Tag", {
     name: {
-        type: STRING(100),
+        type: DataTypes.STRING(100),
         validate: {
             notNull: false
         }
     },
-    description: TEXT('tiny')
+    description: DataTypes.TEXT('tiny')
 });
 Game.belongsToMany(Tag, { through: "GameTag" });
 Tag.belongsToMany(Game, { through: "GameTag" });
-export const TagRoute = Router();
 TagRoute.post('/new', async (req, res) => {
     try {
         const tags = [

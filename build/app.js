@@ -1,13 +1,13 @@
 import express from "express";
 import { GameRoute } from "./Models/Game.js";
 import { User } from './Models/User.js';
-import { Controller } from './Models/Controller.js';
+import { Controller, ControllerRoute } from './Models/Controller.js';
 import { Tag, TagRoute } from './Models/Tag.js';
-import { Status } from './Models/Status.js';
-import { Platform } from './Models/Platform.js';
+import { Status, StatusRoute } from './Models/Status.js';
+import { Platform, PlatformRoute } from './Models/Platform.js';
 import { Genre, GenreRoute } from './Models/Genre.js';
-const sentance = "Good Good";
-console.log(sentance);
+import { DataRoute } from './Data.js';
+import { Language } from './Models/Language.js';
 const app = express();
 app.use(express.json());
 // error failed to fetch --> Cors head
@@ -48,10 +48,6 @@ app.post("/admin/tag", async (req, res) => {
     }).catch((error) => console.log(error));
     res.status(200).json(tag);
 });
-// routes
-app.use('/game', GameRoute);
-app.use('/genre', GenreRoute);
-app.use('/tag', TagRoute);
 //route pour créer un Status via l'Admin
 app.post("/admin/status", async (req, res) => {
     const newStatus = req.body;
@@ -79,6 +75,23 @@ app.post("/admin/genre", async (req, res) => {
     }).catch((error) => console.log(error));
     res.status(200).json(genre);
 });
+//route pour créer un genre via l'Admin
+app.post("/admin/Language", async (req, res) => {
+    const newLanguage = req.body;
+    const gelanguage = await Language.create({
+        name: newLanguage.name,
+        code: newLanguage.code
+    }).catch((error) => console.log(error));
+    res.status(200).json(Language);
+});
+// routes
+app.use('/game', GameRoute);
+app.use('/genre', GenreRoute);
+app.use('/tag', TagRoute);
+app.use('/data', DataRoute);
+app.use('/statuses', StatusRoute);
+app.use('/platforms', PlatformRoute);
+app.use('/controllers', ControllerRoute);
 // Limit of the Post//
 app.listen(9090, () => {
     console.log("Server on port 9090");

@@ -1,17 +1,19 @@
-import { DECIMAL, NUMBER, Op, STRING } from "sequelize";
 import { sequelize } from "../database.js";
+import {DECIMAL, DOUBLE, Op, STRING } from "sequelize";
 import { User } from "./User.js";
+import { Router } from 'express';
 
+export const GameRoute = Router();
 export const Game = sequelize.define("Game", {
     title: {
         type: STRING(100),
         allowNull: false,
     },
     price: {
-        type: DECIMAL,
+        type: DOUBLE,
         allowNull: false,
         validate: {
-            max: 50,
+            max: 100,
             min: 0,
         }
     },
@@ -24,12 +26,10 @@ export const Game = sequelize.define("Game", {
         allowNull: true,  
     },
     description: {
-        type: STRING(255),
+        type: STRING(1500),
         allowNull: true,
     },
 });
-
-// Relation behind Game and other and creation of all join queries//
 
 Game.belongsToMany(User, { through: "Comment" });
 User.belongsToMany(Game, { through: "Comment" });
@@ -43,9 +43,6 @@ User.belongsToMany(Game, { through: "Upload" });
 User.belongsToMany(Game, { through: "Order" });
 Game.belongsToMany(User, { through: "Order" });
 
-
-import { Router } from 'express';
-export const GameRoute = Router();
 
 // route pour créer un jeu
 
@@ -68,6 +65,29 @@ GameRoute.post('/new', async (req, res) => {
   }
 });
 
+GameRoute.post('/new/manyGames', async (req, res) => {
+    try {
+        // Assurez-vous que req.body est un tableau d'objets de jeux
+        const newGames = req.body;
+
+        // Validation simple pour s'assurer que c'est un tableau
+        if (!Array.isArray(newGames)) {
+            return res.status(400).json({ error: 'Le corps de la requête doit être un tableau d\'objets de jeux' });
+        }
+
+        // Utiliser bulkCreate pour insérer plusieurs jeux
+        const createdGames = await Game.bulkCreate(newGames);
+
+        // Répondre avec un message de succès
+        res.status(201).json({
+            message: 'Jeux créés avec succès !',
+            games: createdGames // Optionnel: Inclure les jeux créés dans la réponse
+        });
+    } catch (error) {
+        console.error('Erreur lors de l\'insertion des jeux :', error);
+        res.status(500).json({ error: 'Erreur lors de l\'insertion des jeux' });
+    }
+});
 
 GameRoute.get("/AllGames", async (req, res) => {
     try {
