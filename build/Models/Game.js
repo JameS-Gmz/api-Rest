@@ -1,5 +1,5 @@
 import { sequelize } from "../database.js";
-import { DOUBLE, Op, STRING } from "sequelize";
+import { DataTypes, DOUBLE, Op, STRING } from "sequelize";
 import { User } from "./User.js";
 import { Router } from 'express';
 export const GameRoute = Router();
@@ -28,6 +28,18 @@ export const Game = sequelize.define("Game", {
         type: STRING(1500),
         allowNull: true,
     },
+    createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        field: 'createdAt',
+        allowNull: true,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        field: 'updatedAt',
+        allowNull: true,
+    }
 });
 Game.belongsToMany(User, { through: "Comment" });
 User.belongsToMany(Game, { through: "Comment" });
@@ -46,7 +58,9 @@ GameRoute.post('/new', async (req, res) => {
             price: newGame.price,
             authorStudio: newGame.authorStudio,
             madewith: newGame.madewith,
-            description: newGame.description
+            description: newGame.description,
+            createdAt: newGame.createdAt,
+            updatedAt: newGame.updatedAt
         });
         console.log('Jeu créé:', game);
         res.status(201).json(game); // 201 status for created resource
@@ -159,6 +173,19 @@ GameRoute.get("/price/:min/:max", async (req, res) => {
     }
     catch (error) {
         console.log(error);
+    }
+});
+GameRoute.get("/order/date", async (req, res) => {
+    try {
+        const gamesDate = await Game.findAll({
+            order: [['createdAt', 'DESC']], // Trier par 'createdAt' en ordre décroissant
+        });
+        console.log('Jeux récupérés :', gamesDate); // Log pour voir ce qui est récupéré
+        res.status(200).json(gamesDate);
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération des jeux:', error);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération des jeux' });
     }
 });
 //route qui supprime un jeu selon son id
