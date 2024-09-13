@@ -7,11 +7,11 @@ export const GameRoute = Router();
 export const Game = sequelize.define("Game", {
     title: {
         type: STRING(100),
-        allowNull: false,
+        allowNull: true,
     },
     price: {
         type: DOUBLE,
-        allowNull: false,
+        allowNull: true,
         validate: {
             max: 100,
             min: 0,
@@ -59,22 +59,15 @@ Game.belongsToMany(User, { through: "Order" });
 // route pour créer un jeu
 
 GameRoute.post('/new', async (req, res) => {
-    try {
-        const newGame = req.body;
-        const game = await Game.create({
+    const { title, description, price, controllerIds, languagesIds } = req.body;
 
-            title: newGame.title,
-            price: newGame.price,
-            authorStudio: newGame.authorStudio,
-            madewith: newGame.madewith,
-            description: newGame.description,
-            createdAt: newGame.createdAt,
-            updatedAt : newGame.updatedAt
-        })
-        console.log('Jeu créé:', game);
-        res.status(201).json(game); // 201 status for created resource
+    try {
+        const game = await Game.create({ title, description, price });
+
+        res.status(201).json(game);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to create the game' });
+        console.error('Erreur lors de la création du jeu :', error);
+        res.status(500).json({ error: 'Erreur lors de la création du jeu' });
     }
 });
 
@@ -111,21 +104,22 @@ GameRoute.get("/AllGames", async (req, res) => {
     }
 });
 
-//route qui recupere un game avec soit l'id soit le title
-GameRoute.get("/:identifier", async (req, res) => {
-    try {
-        const identifier = req.params.identifier
 
-        const game = await Game.findOne({
-            where: {
-                [Op.or]: [{ title: identifier }, { id: identifier }],
-            }
-        })
-        res.status(200).json(game);
-    } catch (error) {
-        console.log(error);
-    }
-});
+// //route qui recupere un game avec soit l'id soit le title
+// GameRoute.get("/:identifier", async (req, res) => {
+//     try {
+//         const identifier = req.params.identifier
+
+//         const game = await Game.findOne({
+//             where: {
+//                 [Op.or]: [{ title: identifier }, { id: identifier }],
+//             }
+//         })
+//         res.status(200).json(game);
+//     } catch (error) {
+//         console.log(error);
+//     }
+// });
 
 //route qui recupere un produit uniquement avec son ID
 GameRoute.get("/id/:id", async (req, res) => {
@@ -193,12 +187,11 @@ GameRoute.get("/price/:min/:max", async (req, res) => {
     }
 });
 
-GameRoute.get("/order/date", async (req, res) => {
+GameRoute.get("/sequence/date", async (req, res) => {
     try {
         const gamesDate = await Game.findAll({
             order: [['createdAt', 'DESC']], // Trier par 'createdAt' en ordre décroissant
         });
-        console.log('Jeux récupérés :', gamesDate); // Log pour voir ce qui est récupéré
         res.status(200).json(gamesDate);
     } catch (error) {
         console.error('Erreur lors de la récupération des jeux:', error);
@@ -206,6 +199,38 @@ GameRoute.get("/order/date", async (req, res) => {
     }
 });
 
+GameRoute.get('/search', async (req, res) => {
+    const query = req.query.q; // Exemple: /search?q=nomdujeu
+
+    
+  if (!query) {
+    return res.status(400).json({ error: 'Requête invalide, le paramètre de recherche est manquant.' });
+  }
+
+  try {
+    console.log('Recherche effectuée avec le terme :', query);
+
+    // Rechercher des jeux dans la base de données
+    const games = await Game.findAll({
+      where: {
+        title: {
+          [Op.like]: `%${query}%` // Recherche partielle
+        }
+      }
+    });
+
+    console.log('Jeux trouvés:', games); // Log les jeux trouvés
+
+    if (games.length === 0) {
+      return res.status(404).json({ error: 'Aucun jeu trouvé.' });
+    }
+
+    res.status(200).json(games); // Retourne les jeux trouvés
+  } catch (error) {
+    console.error('Erreur lors de la récupération des jeux :', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des jeux.' });
+  }
+  });
 //route qui supprime un jeu selon son id
 GameRoute.delete("/delete/:id", async (req, res) => {
     try {
