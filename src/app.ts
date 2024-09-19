@@ -1,5 +1,7 @@
-import { Request, Response } from 'express';
+import  cors  from "cors";
 import express from "express";
+
+import { Request, Response } from 'express';
 import { GameRoute } from "./Models/Game.js";
 import { User } from './Models/User.js';
 import { Controller, ControllerRoute } from './Models/Controller.js';
@@ -10,10 +12,8 @@ import { Genre, GenreRoute } from './Models/Genre.js';
 import { DataRoute } from './Data.js';
 import { Language } from './Models/Language.js';
 
-
 const app = express();
 app.use(express.json());
-
 
 // error failed to fetch --> Cors head
 app.use((req, res, next) => {
@@ -23,6 +23,11 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use(cors({
+  origin: 'http://localhost:4200',  // Remplace par l'URL de ton front-end
+  methods: ['POST', 'GET', 'PUT', 'DELETE'],
+  credentials: true
+}));
 
 
 // route pour créer un user
@@ -130,7 +135,7 @@ app.use('/statuses',StatusRoute);
 app.use('/platforms',PlatformRoute);
 app.use('/controllers',ControllerRoute);
 
-// Limit of the Post//
+
 app.listen(9090, () => {
     console.log("Server on port 9090")
 })

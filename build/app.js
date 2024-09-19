@@ -1,3 +1,4 @@
+import cors from "cors";
 import express from "express";
 import { GameRoute } from "./Models/Game.js";
 import { User } from './Models/User.js';
@@ -17,6 +18,11 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     next();
 });
+app.use(cors({
+    origin: 'http://localhost:4200', // Remplace par l'URL de ton front-end
+    methods: ['POST', 'GET', 'PUT', 'DELETE'],
+    credentials: true
+}));
 // route pour créer un user
 app.post("/register", async (req, res) => {
     const newUser = req.body;
@@ -92,7 +98,6 @@ app.use('/data', DataRoute);
 app.use('/statuses', StatusRoute);
 app.use('/platforms', PlatformRoute);
 app.use('/controllers', ControllerRoute);
-// Limit of the Post//
 app.listen(9090, () => {
     console.log("Server on port 9090");
 });
