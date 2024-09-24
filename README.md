@@ -1,6 +1,9 @@
 # Playforge
 PlayForge est un site de partage et d'achat de jeu indépendant.
 
+# Objectif principal :
+Créer une plateforme permettant aux développeurs indépendants de jeux vidéo de publier leurs créations, d'obtenir de la visibilité et des retours d'utilisateurs. Le site doit favoriser la découverte de nouveaux jeux et l’interaction entre les créateurs et les joueurs.
+
 ## SYSTEME DE BIBLIOTHEQUE :
 La bibliotèque contient tout les jeux achetés ou joués par l'utilisateur.
 
@@ -27,14 +30,13 @@ La bibliotèque contient tout les jeux achetés ou joués par l'utilisateur.
     - Jouer dans le navigateur aux jeux gratuits
     - Ajouter au panier
     - Se créer une compte
-- Users a le droit de :
-    - télécharger un jeu
-    - commenter un jeu
-    - consulter sa bibliotèque
-    - reçevoir des notifications
-- Développeurs à le droit de
-    - de mettre en ligne un jeu; une vérification d'identitié est nécessaires : carte d'identité et éventuellement un frais de 5€.
-- Admin : Tout les droits
+      
+Administrateurs : Gestion de la base de donnée ainsi que modération.
+
+Développeurs : Inscription et gestion de profils, publication de jeux.
+
+Utilisateurs : Inscription pour laisser des commentaires, donner des notes, et suivre les développeurs, gestion de profil.
+
 
 ## SYSTEME de mise en ligne et de téléchargement de jeux :
 - mettre en ligne un jeu
