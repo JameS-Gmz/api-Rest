@@ -27,7 +27,6 @@ GenreRoute.post('/new', async (req, res) => {
         { name: 'FPS', description: 'First-Person Shooter' },
         { name: 'Survival', description: 'Survival games' },
         { name: 'Action-Adventure', description: 'Combines elements of action and adventure' },
-        // Ajoutez les autres genres ici
     ];
 
     try {
@@ -40,7 +39,6 @@ GenreRoute.post('/new', async (req, res) => {
     }
 });
     
-    Game.belongsToMany(Genre, { through: "GameGenre" });
-    Genre.belongsToMany(Game, { through: "GameGenre" });
+
   
 

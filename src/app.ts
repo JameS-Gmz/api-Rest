@@ -2,7 +2,7 @@ import  cors  from "cors";
 import express from "express";
 
 import { Request, Response } from 'express';
-import { GameRoute } from "./Models/Game.js";
+import { Game, GameRoute } from "./Models/Game.js";
 import { User } from './Models/User.js';
 import { Controller, ControllerRoute } from './Models/Controller.js';
 import { Tag, TagRoute } from './Models/Tag.js';
@@ -10,10 +10,13 @@ import { Status, StatusRoute } from './Models/Status.js';
 import { Platform, PlatformRoute } from './Models/Platform.js';
 import { Genre, GenreRoute } from './Models/Genre.js';
 import { DataRoute } from './Data.js';
-import { Language } from './Models/Language.js';
+import { Language, LanguageRoute } from './Models/Language.js';
+import { Role } from "./Models/Role.js";
+import { Cart } from "./Models/Cart.js";
 
 const app = express();
 app.use(express.json());
+
 
 // error failed to fetch --> Cors head
 app.use((req, res, next) => {
@@ -134,6 +137,48 @@ app.use('/data',DataRoute);
 app.use('/statuses',StatusRoute);
 app.use('/platforms',PlatformRoute);
 app.use('/controllers',ControllerRoute);
+app.use('/language',LanguageRoute)
+
+
+//relations 
+Game.belongsToMany(User, { through: "Comment" });
+User.belongsToMany(Game, { through: "Comment" });
+
+Game.belongsToMany(User, { through: "Library" });
+User.belongsToMany(Game, { through: "Library" });
+
+Game.belongsToMany(User, { through: "Upload" });
+User.belongsToMany(Game, { through: "Upload" });
+
+User.belongsToMany(Game, { through: "Order" });
+Game.belongsToMany(User, { through: "Order" });
+
+Game.belongsToMany(Controller, { through: 'GameControllers' });
+Controller.belongsToMany(Game, { through: 'GameControllers' });
+
+Game.belongsToMany(Tag,{through:"GameTag"});
+Tag.belongsToMany(Game,{through:"GameTag"});
+
+Game.belongsTo(Status, { foreignKey: 'StatusId', as: 'status' });
+Status.hasMany(Game, { foreignKey: 'StatusId', as: 'games' });
+
+User.hasOne(Role);
+Role.hasMany(User);
+
+Game.belongsToMany(Platform,{through:"GamePlatforms"});
+Platform.belongsToMany(Game,{through:"GamePlatforms"});
+
+Game.belongsTo(Language, { foreignKey: 'LanguageId' as 'language'});
+Language.hasMany(Game, { foreignKey: 'LanguageId' as 'games'});
+
+Game.belongsToMany(Genre, { through: "GameGenre" });
+Genre.belongsToMany(Game, { through: "GameGenre" });
+
+Cart.belongsToMany(Game,{through:"GameCart"});
+Game.belongsToMany(Cart,{through:"GameCart"});
+
+User.hasOne(Cart);
+Cart.belongsTo(User);
 
 
 app.listen(9090, () => {

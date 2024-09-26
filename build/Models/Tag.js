@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../database.js";
-import { Game } from "./Game.js";
 import { Router } from "express";
 export const TagRoute = Router();
 export const Tag = sequelize.define("Tag", {
@@ -12,8 +11,6 @@ export const Tag = sequelize.define("Tag", {
     },
     description: DataTypes.TEXT('tiny')
 });
-Game.belongsToMany(Tag, { through: "GameTag" });
-Tag.belongsToMany(Game, { through: "GameTag" });
 TagRoute.post('/new', async (req, res) => {
     try {
         const tags = [

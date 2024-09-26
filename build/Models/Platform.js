@@ -1,6 +1,5 @@
 import { sequelize } from "../database.js";
-import { STRING, TEXT } from "sequelize";
-import { Game } from "./Game.js";
+import { STRING } from "sequelize";
 import { Router } from "express";
 export const PlatformRoute = Router();
 export const Platform = sequelize.define("Platform", {
@@ -10,10 +9,13 @@ export const Platform = sequelize.define("Platform", {
             notNull: false
         }
     },
-    description: TEXT('tiny')
+    description: {
+        type: STRING(500),
+        validate: {
+            notNull: false
+        }
+    }
 });
-Game.belongsToMany(Platform, { through: "GamePlateform" });
-Platform.belongsToMany(Game, { through: "GamePlateform" });
 PlatformRoute.post('/new', async (req, res) => {
     try {
         const platforms = [

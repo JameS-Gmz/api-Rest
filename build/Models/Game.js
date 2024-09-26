@@ -1,7 +1,10 @@
 import { sequelize } from "../database.js";
 import { DataTypes, DOUBLE, Op, STRING } from "sequelize";
-import { User } from "./User.js";
 import { Router } from 'express';
+import { Controller } from "./Controller.js";
+import { Platform } from "./Platform.js";
+import { Status } from "./Status.js";
+import { Language } from "./Language.js";
 export const GameRoute = Router();
 export const Game = sequelize.define("Game", {
     title: {
@@ -39,21 +42,33 @@ export const Game = sequelize.define("Game", {
         defaultValue: DataTypes.NOW,
         field: 'updatedAt',
         allowNull: true,
+    },
+    StatusId: {
+        type: DataTypes.INTEGER,
+        allowNull: true, // Autoriser NULL pour éviter l'erreur
+        references: {
+            model: 'Statuses',
+            key: 'id',
+        },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+    },
+    LanguageId: {
+        type: DataTypes.INTEGER,
+        allowNull: true, // Autoriser NULL pour éviter l'erreur
+        references: {
+            model: 'Languages',
+            key: 'id',
+        },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
     }
 });
-Game.belongsToMany(User, { through: "Comment" });
-User.belongsToMany(Game, { through: "Comment" });
-Game.belongsToMany(User, { through: "Library" });
-User.belongsToMany(Game, { through: "Library" });
-Game.belongsToMany(User, { through: "Upload" });
-User.belongsToMany(Game, { through: "Upload" });
-User.belongsToMany(Game, { through: "Order" });
-Game.belongsToMany(User, { through: "Order" });
 // route pour créer un jeu
 GameRoute.post('/new', async (req, res) => {
-    const { title, description, price, controllerIds, languagesIds, authorStudio, madewith } = req.body;
+    const { title, description, price, authorStudio, madewith, StatusId } = req.body;
     try {
-        const game = await Game.create({ title, description, price, authorStudio, madewith });
+        const game = await Game.create({ title, description, price, authorStudio, madewith, StatusId });
         res.status(201).json(game);
     }
     catch (error) {
@@ -192,18 +207,55 @@ GameRoute.delete("/delete/:id", async (req, res) => {
         console.log(error);
     }
 });
-//route qui supprime un jeu selon son titre
-GameRoute.delete("/game/delete/:title", async (req, res) => {
+GameRoute.post('/associate-categories', async (req, res) => {
+    const { GameId, ControllerId, PlatformId, StatusId, LanguageId } = req.body;
+    // Convertir en tableau d'IDs si nécessaire
+    const controllerIds = Array.isArray(ControllerId) ? ControllerId.map(id => parseInt(id, 10)) : [parseInt(ControllerId, 10)];
+    const platformIds = Array.isArray(PlatformId) ? PlatformId.map(id => parseInt(id, 10)) : [parseInt(PlatformId, 10)];
     try {
-        const gamename = req.params.title;
-        const deletegame = await Game.destroy({
-            where: {
-                title: gamename
-            }
+        // Vérifier que le jeu existe
+        const game = await Game.findByPk(GameId);
+        if (!game) {
+            return res.status(404).json({ error: 'Jeu non trouvé' });
+        }
+        // Vérifier que le statut existe
+        const status = await Status.findByPk(StatusId);
+        if (!status) {
+            return res.status(404).json({ error: 'Statut non trouvé' });
+        }
+        // Mettre à jour le jeu avec le statut
+        game.setDataValue = StatusId;
+        console.log(StatusId);
+        await game.save();
+        const language = await Language.findByPk(LanguageId);
+        if (!language) {
+            return res.status(404).json({ error: 'Langue non trouvée' });
+        }
+        game.setDataValue = LanguageId;
+        console.log(LanguageId);
+        await game.save();
+        // Rechercher et associer les contrôleurs
+        const controllers = await Controller.findAll({ where: { id: controllerIds } });
+        if (!controllers.length) {
+            return res.status(400).json({ error: 'Aucun contrôleur trouvé pour les IDs spécifiés' });
+        }
+        await sequelize.models.GameControllers.create({
+            GameId: GameId,
+            ControllerId: ControllerId
         });
-        res.status(200).json("le produit suivant est supprimer : " + deletegame);
+        // Rechercher et associer les plateformes
+        const platforms = await Platform.findAll({ where: { id: platformIds } });
+        if (!platforms.length) {
+            return res.status(400).json({ error: 'Aucune plateforme trouvée pour les IDs spécifiés' });
+        }
+        await sequelize.models.GamePlatforms.create({
+            GameId: GameId,
+            PlatformId: PlatformId
+        });
+        res.status(200).json({ message: 'Jeu mis à jour avec succès avec les contrôleurs, plateformes et statut.' });
     }
     catch (error) {
-        console.log(error);
+        console.error('Erreur lors de l\'association des catégories:', error);
+        res.status(500).json({ error: 'Erreur lors de l\'association des catégories' });
     }
 });

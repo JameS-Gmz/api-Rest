@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../database.js";
-import { Game } from "./Game.js";
 import { Router } from "express";
 export const StatusRoute = Router();
 export const Status = sequelize.define("Status", {
@@ -10,10 +9,13 @@ export const Status = sequelize.define("Status", {
             notNull: false
         }
     },
-    description: DataTypes.TEXT('tiny')
+    description: {
+        type: DataTypes.STRING(500),
+        validate: {
+            notNull: false
+        }
+    }
 });
-Status.hasMany(Game);
-Game.hasOne(Status);
 StatusRoute.post('/new', async (req, res) => {
     try {
         const status = [

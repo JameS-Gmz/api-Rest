@@ -21,7 +21,6 @@ GenreRoute.post('/new', async (req, res) => {
         { name: 'FPS', description: 'First-Person Shooter' },
         { name: 'Survival', description: 'Survival games' },
         { name: 'Action-Adventure', description: 'Combines elements of action and adventure' },
-        // Ajoutez les autres genres ici
     ];
     try {
         // Insérer les genres en utilisant bulkCreate
@@ -33,5 +32,3 @@ GenreRoute.post('/new', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de l\'insertion des genres' });
     }
 });
-Game.belongsToMany(Genre, { through: "GameGenre" });
-Genre.belongsToMany(Game, { through: "GameGenre" });
