@@ -70,3 +70,99 @@ gantt
         Diagram MCDUML : 2024-06-26 9:00, 4h
         Maquette Figma Home/Game : 2024-06-26 14:00, 3h
         Maquette Figma SignIn/SignUp/Library/Notifications : 2024-06-27 9:00, 5h
+
+---
+title : Diagramme UML
+---
+ erDiagram
+ 
+Game
+Status
+Language
+Genre
+Tag
+Platform
+Controller
+Cart
+User
+Role
+
+Game{
+id INT
+price DECIMAL
+name STRING
+image URL
+}
+
+Status{
+id INT
+name STRING
+description STRING
+}
+
+Language{
+id INT
+name STRING
+description STRING
+}
+
+Genre{
+id INT
+name STRING
+description STRING
+}
+
+Tag {
+id INT
+name STRING
+description STRING
+}
+
+Controller{
+id INT
+name STRING
+description STRING
+}
+
+Platform{
+id INT
+name STRING
+description STRING
+}
+
+Cart{
+id INT
+}
+
+User{
+id INT
+name STRING
+surname STRING
+username STRING
+email STRING
+password STRING
+}
+
+Role{
+id INT 
+}
+
+User }|--|{ Game : library
+User }|--|{ Game : comments
+User }|--|{ Game : order
+User }|--|{ Game : upload
+
+Genre}|--|{ Game : gameGenre
+Tag}|--|{ Game : gameTag
+Controller}|--|{ Game : gameController
+Platform}|--|{ Game : gamePlatform
+
+Status ||--|{ Game : has
+
+Language ||--|{ Game : has
+
+Game }|--|{ Cart : contains
+Cart ||--|| User : has
+
+User }|--|| Role : has
+
