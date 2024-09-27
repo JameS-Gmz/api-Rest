@@ -166,4 +166,156 @@ Game }|--|{ Cart : contains
 Cart ||--|| User : has
 
 User }|--|| Role : has
+````
+```` mermaid
+--- 
+title : Diagramme MCDUML
+---
+ erDiagram
+ 
+Game
+Status
+Language
+Genre
+Tag
+Platform
+Controller
+Cart
+User
+Role
+
+Game{
+id INT
+price DECIMAL
+name STRING
+description TEXT
+image URL
+}
+
+Status{
+id INT
+name STRING
+description STRING
+}
+
+Language{
+id INT
+name STRING
+description STRING
+}
+
+Genre{
+id INT
+name STRING
+description STRING
+}
+
+Tag {
+id INT
+name STRING
+description STRING
+}
+
+Controller{
+id INT
+name STRING
+description STRING
+}
+
+Platform{
+id INT
+name STRING
+description STRING
+}
+
+Cart{
+id INT
+}
+
+User{
+id INT
+name STRING
+surname STRING
+username STRING
+email STRING
+password STRING
+}
+
+Role{
+id INT 
+}
+
+GameController["GameController"]{
+controllerId INT
+gameId INT
+}
+
+GameTag["GameTag"]{
+controllerId INT
+gameId INT
+}
+
+GamePlatform["GamePlatform"]{
+controllerId INT
+gameId INT
+}
+
+GameGenre["GameGenre"]{
+controllerId INT
+gameId INT
+}
+
+Upload["Upload"]{
+userId INT
+gameId INT
+}
+
+Comments["Comments"]{
+title TEXT
+body TEXT
+note INT
+}
+
+Library["Library"]{
+userId INT
+gameId INT
+}
+
+Order["Order"]{
+userId INT
+gameId INT
+}
+
+User ||--|{ Comments : comments
+Comments }|--|| Game : commented
+
+User ||--|{ Library : has
+Library }|--|| Game : contains
+
+User ||--|{ Upload : has
+Upload }|--|| Game : has
+
+Platform ||--|{ GamePlatform : has
+Game ||--|{ GamePlatform : belongs
+
+Controller ||--|{ GameController : has
+Game ||--|{ GameController : belongs
+
+Tag ||--|{ GameTag : has
+Game ||--|{ GameTag : belongs
+
+Genre ||--|{ GameGenre : has
+Game ||--|{ GameGenre : belongs
+
+Status ||--|{ Game : has
+
+Language ||--|{ Game : has
+
+Game }|--|{ Cart : contains
+Cart ||--|| User : has
+
+User ||--|{ Order : order
+Order }|--|| Game : ordered
+
+User }|--|| Role : has
 
