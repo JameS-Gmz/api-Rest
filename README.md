@@ -58,18 +58,27 @@ Chaque jeu dispose d'un espace de commentaires où les utilisateurs et développ
 
 ```mermaid
 gantt
-    title Gantt Diagram
+    title Gantt Diagram for PlayForge Project
     dateFormat YYYY-MM-DD
-    section TimeLine
-        Pré-Production   :a1, 2024-06-25, 3d
-        Production Main Task : 2024-06-28, 2d
-    section Pré-Production
-        Set name/describe the Project :2024-06-25 9:00, 3h
-        Diagram Usecase  : 2024-06-25 13:00, 2h
-        Diagram UML : 2024-06-25 15:00, 2h
-        Diagram MCDUML : 2024-06-26 9:00, 4h
-        Maquette Figma Home/Game : 2024-06-26 14:00, 3h
-        Maquette Figma SignIn/SignUp/Library/Notifications : 2024-06-27 9:00, 5h
+    section Pre-Production
+    Pré-Production                   :a1, 2024-06-25, 3d
+    section Production
+    Key Features (Add Game, Play Game in Browser) :a2, 2024-06-28, 26d
+    section Styling
+    Layout and CSS with Responsive Design         :a3, 2024-07-24, 21d
+    section Back End Development
+    Back End Creation                :a4, 2024-08-14, 26d
+    section API Development
+    API Upload Creation              :a5, 2024-08-26, 18d
+    section File Handling
+    Retrieve Multiple Files with API Upload :a6, 2024-09-13, 6d
+    section Database
+    Complete Join Table for Categories :a7, 2024-09-19, 5d
+    section Documentation
+    Project/Professional Document Writing :a8, 2024-09-24, 3d
+    section Finalization
+    Finalization of Features         :a9, 2024-09-27, 5d
+
 ````
 ``` mermaid
 ---
