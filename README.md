@@ -70,7 +70,8 @@ gantt
         Diagram MCDUML : 2024-06-26 9:00, 4h
         Maquette Figma Home/Game : 2024-06-26 14:00, 3h
         Maquette Figma SignIn/SignUp/Library/Notifications : 2024-06-27 9:00, 5h
-
+````
+``` mermaid
 ---
 title : Diagramme UML
 ---
