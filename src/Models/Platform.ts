@@ -24,32 +24,8 @@ export const Platform = sequelize.define("Platform", {
 
 PlatformRoute.post('/new', async (req, res) => {
   try {
-    const platforms = [
-      {
-        name: "Windows",
-        description: "The game is available for Windows operating systems."
-      },
-      {
-        name: "Linux",
-        description: "The game is available for Linux operating systems."
-      },
-      {
-        name: "MacOS",
-        description: "The game is available for MacOS operating systems."
-      },
-      {
-        name: "iOS",
-        "description": "The game is available for iOS devices, such as iPhones and iPads."
-      },
-      {
-        name: "Android",
-        description: "The game is available for Android devices."
-      },
-      {
-        name: "Play in Browser",
-        description: "The game can be played directly in a web browser without installation."
-      }
-    ];
+    const platforms = [{}];
+    
     // Insérer les genres en utilisant bulkCreate
     await Platform.bulkCreate(platforms);
     res.status(201).json({ message: 'platforms créés avec succès !' });
@@ -60,3 +36,28 @@ PlatformRoute.post('/new', async (req, res) => {
   }
 
 });
+
+PlatformRoute.get('/games/:id', async (req, res) => {
+  const platformId = req.params.id;
+  try {
+    const platform = await Platform.findByPk(platformId);
+    if (!platform) {
+      return res.status(404).json({ error: 'Plateforme non trouvée' });
+    }
+    res.json(platform);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la plateforme :', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération de la plateforme' });
+  }
+});
+
+PlatformRoute.get('/all', async (req, res) => {
+  try {
+    const platforms = await Platform.findAll();
+    res.json(platforms);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des plateformes :', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des plateformes' });
+  }
+});
+

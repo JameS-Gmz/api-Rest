@@ -7,6 +7,7 @@ import { Status } from "./Status.js";
 import { Language } from "./Language.js";
 import { Genre } from "./Genre.js";
 import { Tag } from "./Tag.js";
+import { authorizeRole } from "../middleware/authRole.js";
 export const GameRoute = Router();
 export const Game = sequelize.define("Game", {
     title: {
@@ -66,7 +67,7 @@ export const Game = sequelize.define("Game", {
         onUpdate: 'CASCADE',
     }
 });
-GameRoute.post('/new', async (req, res) => {
+GameRoute.post('/new', authorizeRole(['developer']), async (req, res) => {
     const { title, description, price, authorStudio, madewith, StatusId, LanguageId } = req.body;
     try {
         const game = await Game.create({ title, description, price, authorStudio, madewith, StatusId, LanguageId });
@@ -77,7 +78,7 @@ GameRoute.post('/new', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la création du jeu' });
     }
 });
-GameRoute.post('/new/manyGames', async (req, res) => {
+GameRoute.post('/new/manyGames', authorizeRole(['admin']), async (req, res) => {
     try {
         // Assurez-vous que req.body est un tableau d'objets de jeux
         const games = [
@@ -185,9 +186,9 @@ GameRoute.get("/AllGames", async (req, res) => {
         console.log(error);
     }
 });
-GameRoute.get("/id/:id", async (req, res) => {
+GameRoute.get("/id/:gameId", async (req, res) => {
     try {
-        const game_id = req.params.id;
+        const game_id = req.params.gameId;
         const game = await Game.findByPk(game_id);
         res.status(200).json(game);
     }
@@ -252,7 +253,7 @@ GameRoute.get('/search', async (req, res) => {
     }
 });
 //route qui supprime un jeu selon son id
-GameRoute.delete("/delete/:id", async (req, res) => {
+GameRoute.delete("/delete/:id", authorizeRole(['admin']), async (req, res) => {
     try {
         const id = req.params.id;
         const nbDeletedGames = await Game.destroy({
@@ -335,3 +336,32 @@ GameRoute.post('/associate-categories', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de l\'association des catégories' });
     }
 });
+// GameRoute.post('/filter', async (req, res) => {
+//   const { genre, platform, language, controller, status, tag } = req.body;  // Filtres envoyés par le client
+//   try {
+//     // Construire les conditions de la requête Sequelize
+//     const whereConditions = {};
+//     if (genre) whereConditions.genreId = genre;
+//     if (platform) whereConditions.platformId = platform;
+//     if (language) whereConditions.languageId = language;
+//     if (controller) whereConditions.controllerId = controller;
+//     if (status) whereConditions.statusId = status;
+//     if (tag) whereConditions.tagId = tag;
+//     // Trouver les jeux en fonction des filtres
+//     const games = await Game.findAll({
+//       where: whereConditions,
+//       include: [
+//         { model: Genre, as: 'genre' },
+//         { model: Platform, as: 'platform' },
+//         { model: Language, as: 'language' },
+//         { model: Controller, as: 'controller' },
+//         { model: Status, as: 'status' },
+//         { model: Tag, as: 'tag' }
+//       ]
+//     });
+//     res.json(games);
+//   } catch (error) {
+//     console.error('Erreur lors de la récupération des jeux filtrés :', error);
+//     res.status(500).json({ error: 'Erreur serveur lors de la récupération des jeux' });
+//   }
+// });

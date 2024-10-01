@@ -1,7 +1,5 @@
 import cors from "cors";
 import express from "express";
-import * as dotenv from 'dotenv';
-dotenv.config();
 import { Game, GameRoute } from "./Models/Game.js";
 import { User, UserRoute } from './Models/User.js';
 import { Controller, ControllerRoute } from './Models/Controller.js';
@@ -13,6 +11,7 @@ import { DataRoute } from './Data.js';
 import { Language, LanguageRoute } from './Models/Language.js';
 import { Role } from "./Models/Role.js";
 import { Cart } from "./Models/Cart.js";
+import { initCategories, initRoles } from "./initialization/script.js";
 const app = express();
 app.use(express.json());
 // error failed to fetch --> Cors head
@@ -52,8 +51,8 @@ Game.belongsToMany(Tag, { through: "GameTags" });
 Tag.belongsToMany(Game, { through: "GameTags" });
 Game.belongsTo(Status, { foreignKey: 'StatusId', as: 'status' });
 Status.hasMany(Game, { foreignKey: 'StatusId', as: 'games' });
-User.hasOne(Role);
-Role.hasMany(User);
+User.belongsTo(Role, { foreignKey: 'RoleId', as: 'role' });
+Role.hasMany(User, { foreignKey: 'RoleId' });
 Game.belongsToMany(Platform, { through: "GamePlatforms" });
 Platform.belongsToMany(Game, { through: "GamePlatforms" });
 Game.belongsTo(Language, { foreignKey: 'LanguageId' });
@@ -67,3 +66,5 @@ Cart.belongsTo(User);
 app.listen(9090, () => {
     console.log("Server on port 9090");
 });
+initCategories();
+initRoles();

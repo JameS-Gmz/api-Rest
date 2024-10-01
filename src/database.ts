@@ -1,4 +1,5 @@
 import { Sequelize } from "sequelize";
+
 // define tables
 
 const login = {
@@ -19,9 +20,9 @@ sequelize.authenticate()
     .then(() => console.log("Connecté à la BDD : PlayForge"))
     .catch((error: Error) => console.log(error));
 
-sequelize.sync()
+sequelize.sync({})
 .then(() => {
-    console.log("Les modéles et les tables sont synchronisés")
+    console.log("Les modéles et les tables sont synchronisés");
 })
 .catch((error: Error) => console.log(error));
 

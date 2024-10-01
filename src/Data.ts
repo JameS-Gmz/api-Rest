@@ -1,4 +1,4 @@
-// routes/data.js
+
 import { Router } from "express";
 import { sequelize } from "./database.js";
 import { QueryTypes } from "sequelize";

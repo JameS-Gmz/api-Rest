@@ -12,22 +12,14 @@ export const Tag = sequelize.define("Tag", {
             notNull: false
         }
     },
-    description: DataTypes.TEXT('tiny')
+    description: DataTypes.STRING(600)
 });
 
 
 
 TagRoute.post('/new', async (req, res) => {
     try {
-        const tags = [
-            { name: 'Free', description: 'Games available at no cost.' },
-            { name: 'On Sale', description: 'Games currently discounted.' },
-            { name: 'Five Euro or Less', description: 'Games priced at five euros or less.' },
-            { name: 'Ten Euro or Less', description: 'Games priced at ten euros or less.' },
-            { name: 'Local Multiplayer', description: 'Games with local co-op or competitive play.' },
-            { name: 'Server Multiplayer', description: 'Games featuring online play via dedicated servers.' },
-            { name: 'Network Multiplayer', description: 'Games supporting online multiplayer over a network.' }
-        ];
+        const tags = [{}];
 
         // Insérer les genres en utilisant bulkCreate
         await Tag.bulkCreate(tags);
@@ -39,23 +31,12 @@ TagRoute.post('/new', async (req, res) => {
     }
 });
 
-
-TagRoute.get('/all', async (req, res) => {
-    try {
-        const Tags = await Tag.findAll();
-        res.status(201).json(Tags);
-    } catch (error) {
-        console.error("Erreur lors de la récupération des genres:", error);
-        res.status(500).json({ message: "Erreur serveur" });
-    }
-});
-
-TagRoute.get('/games/:TagId', async (req, res) => {
-    const { TagId } = req.params;
+TagRoute.get('/games/:id', async (req, res) => {
+    const { id } = req.params;
   
     try {
         // Vérifier si le contrôleur existe
-        const controller = await Tag.findByPk(TagId);
+        const controller = await Tag.findByPk(id);
         if (!controller) {
             return res.status(404).json({ error: 'Contrôleur non trouvé' });
         }
@@ -64,7 +45,7 @@ TagRoute.get('/games/:TagId', async (req, res) => {
         const games = await Game.findAll({
             include: [{
                 model: Tag,
-                where: { id: TagId }, // Filtrer par le ControllerId
+                where: { id: id }, // Filtrer par le ControllerId
                 through: { attributes: [] } // Exclure les attributs de la table de jointure
             }]
         });
@@ -80,3 +61,12 @@ TagRoute.get('/games/:TagId', async (req, res) => {
     }
   });
   
+TagRoute.get('/all', async (req, res) => {
+    try {
+        const Tags = await Tag.findAll();
+        res.status(201).json(Tags);
+    } catch (error) {
+        console.error("Erreur lors de la récupération des genres:", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+});
