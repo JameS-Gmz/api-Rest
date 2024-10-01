@@ -5,6 +5,8 @@ import { Controller } from "./Controller.js";
 import { Platform } from "./Platform.js";
 import { Status } from "./Status.js";
 import { Language } from "./Language.js";
+import { Genre } from "./Genre.js";
+import { Tag } from "./Tag.js";
 
 
 export const GameRoute = Router();
@@ -68,13 +70,11 @@ export const Game = sequelize.define("Game", {
 });
 
 
-// route pour créer un jeu
-
 GameRoute.post('/new', async (req, res) => {
-    const { title, description, price, authorStudio, madewith,StatusId } = req.body;
+    const { title, description, price, authorStudio, madewith,StatusId,LanguageId } = req.body;
 
     try {
-        const game = await Game.create({ title, description, price, authorStudio, madewith, StatusId });
+        const game = await Game.create({ title, description, price, authorStudio, madewith, StatusId,LanguageId });
 
         res.status(201).json(game);
     } catch (error) {
@@ -86,15 +86,94 @@ GameRoute.post('/new', async (req, res) => {
 GameRoute.post('/new/manyGames', async (req, res) => {
     try {
         // Assurez-vous que req.body est un tableau d'objets de jeux
-        const newGames = req.body;
+        const games = [
+            {
+              title: 'Battle Quest',
+              price: 19.99,
+              authorStudio: 'Epic Games Studio',
+              madeWith: 'Unreal Engine 5',
+              description: 'An epic action-adventure game with breathtaking visuals and a compelling storyline.',
+              createdAt: new Date('2024-01-15T12:00:00Z'),
+              updatedAt: new Date('2024-09-15T12:00:00Z'),
+              StatusId: 1,
+              LanguageId: 1
+            },
+            {
+              title: 'Survival Island',
+              price: 14.99,
+              authorStudio: 'Survive Studios',
+              madeWith: 'Unity',
+              description: 'A survival game where you must gather resources and fight for your life on a deserted island.',
+              createdAt: new Date('2023-07-10T10:00:00Z'),
+              updatedAt: new Date('2023-08-12T12:00:00Z'),
+              StatusId: 2,
+              LanguageId: 3
+            },
+            {
+              title: 'Space Odyssey',
+              price: 29.99,
+              authorStudio: 'Galaxy Interactive',
+              madeWith: 'Godot Engine',
+              description: 'A space exploration game set in a massive open world with realistic physics and environments.',
+              createdAt: new Date('2024-02-01T14:00:00Z'),
+              updatedAt: new Date('2024-03-01T12:00:00Z'),
+              StatusId: 1,
+              LanguageId: 2
+            },
+            {
+              title: 'Fantasy Warriors',
+              price: 39.99,
+              authorStudio: 'Dragon Lore Studios',
+              madeWith: 'RPG Maker',
+              description: 'A role-playing game filled with fantasy creatures, magic, and heroic quests.',
+              createdAt: new Date('2023-06-20T09:00:00Z'),
+              updatedAt: new Date('2023-07-20T15:00:00Z'),
+              StatusId: 3,
+              LanguageId: 4
+            },
+            {
+              title: 'Rhythm Beat',
+              price: 9.99,
+              authorStudio: 'Beat Masters',
+              madeWith: 'Custom Engine',
+              description: 'A fast-paced rhythm game that challenges your musical and reflex skills.',
+              createdAt: new Date('2024-05-10T18:00:00Z'),
+              updatedAt: new Date('2024-05-20T20:00:00Z'),
+              StatusId: 1,
+              LanguageId: 5
+            },
+            {
+              title: 'Rogue Dungeon',
+              price: 24.99,
+              authorStudio: 'Dungeon Crawler Inc.',
+              madeWith: 'Godot Engine',
+              description: 'A roguelike dungeon crawler with procedurally generated levels and permadeath.',
+              createdAt: new Date('2023-03-12T08:00:00Z'),
+              updatedAt: new Date('2023-04-15T11:00:00Z'),
+              StatusId: 2,
+              LanguageId: 1
+            },
+            {
+              title: 'Simulator Pro',
+              price: 34.99,
+              authorStudio: 'SimPro Studios',
+              madeWith: 'Unity',
+              description: 'The ultimate simulation game, where you can create and manage everything from cities to farms.',
+              createdAt: new Date('2024-04-05T16:00:00Z'),
+              updatedAt: new Date('2024-04-15T16:00:00Z'),
+              StatusId: 3,
+              LanguageId: 3
+            }
+          ];
+          
 
         // Validation simple pour s'assurer que c'est un tableau
-        if (!Array.isArray(newGames)) {
+        if (!Array.isArray(games)) {
             return res.status(400).json({ error: 'Le corps de la requête doit être un tableau d\'objets de jeux' });
         }
 
         // Utiliser bulkCreate pour insérer plusieurs jeux
-        const createdGames = await Game.bulkCreate(newGames);
+        const createdGames = await Game.bulkCreate(games);
 
         // Répondre avec un message de succès
         res.status(201).json({
@@ -115,25 +194,6 @@ GameRoute.get("/AllGames", async (req, res) => {
         console.log(error);
     }
 });
-
-// //route qui recupere un game avec soit l'id soit le title
-
-// GameRoute.get("/:identifier", async (req, res) => {
-//     try {
-//         const identifier = req.params.identifier
-
-//         const game = await Game.findOne({
-//             where: {
-//                 [Op.or]: [{ title: identifier }, { id: identifier }],
-//             }
-//         })
-//         res.status(200).json(game);
-//     } catch (error) {
-//         console.log(error);
-//     }
-// });
-
-//route qui recupere un produit uniquement avec son ID
 
 GameRoute.get("/id/:id", async (req, res) => {
     try {
@@ -232,13 +292,14 @@ GameRoute.delete("/delete/:id", async (req, res) => {
     }
 });
 
-
 GameRoute.post('/associate-categories', async (req, res) => {
-    const { GameId, ControllerId, PlatformId, StatusId, LanguageId } = req.body;
+    const { GameId, ControllerId, PlatformId, StatusId, LanguageId, tagId, genreId } = req.body;
 
     // Convertir en tableau d'IDs si nécessaire
     const controllerIds = Array.isArray(ControllerId) ? ControllerId.map(id => parseInt(id, 10)) : [parseInt(ControllerId, 10)];
     const platformIds = Array.isArray(PlatformId) ? PlatformId.map(id => parseInt(id, 10)) : [parseInt(PlatformId, 10)];
+    const tagIds= Array.isArray(tagId) ? tagId.map(id => parseInt(id, 10)) : [];
+    const genreIds = Array.isArray(genreId) ? genreId.map(id => parseInt(id, 10)) : [];
 
     try {
         // Vérifier que le jeu existe
@@ -254,45 +315,67 @@ GameRoute.post('/associate-categories', async (req, res) => {
         }
 
         // Mettre à jour le jeu avec le statut
-        game.setDataValue = StatusId;
-        console.log(StatusId)
+        game.dataValues.StatusId = StatusId;
         await game.save();
 
-        
+        // Vérifier que la langue existe
         const language = await Language.findByPk(LanguageId);
-    
-            if (!language) {
-              return res.status(404).json({ error: 'Langue non trouvée' });
-            }
-            game.setDataValue = LanguageId;
-            console.log(LanguageId)
-            await game.save();
-        
+        if (!language) {
+            return res.status(404).json({ error: 'Langue non trouvée' });
+        }
+
+        // Mettre à jour le jeu avec la langue
+        game.dataValues.LanguageId = LanguageId;
+        await game.save();
 
         // Rechercher et associer les contrôleurs
         const controllers = await Controller.findAll({ where: { id: controllerIds } });
         if (!controllers.length) {
             return res.status(400).json({ error: 'Aucun contrôleur trouvé pour les IDs spécifiés' });
         }
-        await sequelize.models.GameControllers.create({
-            GameId : GameId,
-            ControllerId : ControllerId
-        });
+
+        await sequelize.models.GameControllers.bulkCreate(
+            controllerIds.map(id => ({ GameId, ControllerId: id }))
+        );
 
         // Rechercher et associer les plateformes
         const platforms = await Platform.findAll({ where: { id: platformIds } });
         if (!platforms.length) {
             return res.status(400).json({ error: 'Aucune plateforme trouvée pour les IDs spécifiés' });
         }
-        await sequelize.models.GamePlatforms.create({
-            GameId : GameId,
-            PlatformId : PlatformId
-        });
 
-        res.status(200).json({ message: 'Jeu mis à jour avec succès avec les contrôleurs, plateformes et statut.' });
+        await sequelize.models.GamePlatforms.bulkCreate(
+            platformIds.map(id => ({ GameId, PlatformId: id }))
+        );
+
+        // Rechercher et associer les genres
+        if (genreIds.length) {
+            const genres = await Genre.findAll({ where: { id: genreIds } });
+            if (!genres.length) {
+                return res.status(400).json({ error: 'Aucun genre trouvé pour les IDs spécifiés' });
+            }
+
+            await sequelize.models.GameGenres.bulkCreate(
+                genreIds.map(id => ({ GameId, GenreId: id }))
+            );
+        }
+
+        // Rechercher et associer les tags
+        if (tagIds.length) {
+            const tags = await Tag.findAll({ where: { id: tagIds } });
+            if (!tags.length) {
+                return res.status(400).json({ error: 'Aucun tag trouvé pour les IDs spécifiés' });
+            }
+
+            await sequelize.models.GameTags.bulkCreate(
+                tagIds.map(id => ({ GameId, TagId: id }))
+            );
+        }
+        res.status(200).json({ message: 'Jeu mis à jour avec succès avec les contrôleurs, plateformes, genres, tags et statut.' });
     } catch (error) {
         console.error('Erreur lors de l\'association des catégories:', error);
         res.status(500).json({ error: 'Erreur lors de l\'association des catégories' });
     }
 });
+
 

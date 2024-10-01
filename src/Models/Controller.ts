@@ -70,7 +70,7 @@ const controllers = [
 
 });
 
-ControllerRoute.get('/:controllerId', async (req, res) => {
+ControllerRoute.get('/games/:controllerId', async (req, res) => {
   const { controllerId } = req.params;
 
   try {

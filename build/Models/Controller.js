@@ -63,7 +63,7 @@ ControllerRoute.post('/new', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de l\'insertion des Controllers' });
     }
 });
-ControllerRoute.get('/:controllerId', async (req, res) => {
+ControllerRoute.get('/games/:controllerId', async (req, res) => {
     const { controllerId } = req.params;
     try {
         // Vérifier si le contrôleur existe

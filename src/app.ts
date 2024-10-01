@@ -1,9 +1,12 @@
 import  cors  from "cors";
 import express from "express";
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 
 import { Request, Response } from 'express';
 import { Game, GameRoute } from "./Models/Game.js";
-import { User } from './Models/User.js';
+import { User, UserRoute } from './Models/User.js';
 import { Controller, ControllerRoute } from './Models/Controller.js';
 import { Tag, TagRoute } from './Models/Tag.js';
 import { Status, StatusRoute } from './Models/Status.js';
@@ -32,113 +35,16 @@ app.use(cors({
   credentials: true
 }));
 
-
-// route pour créer un user
-app.post("/register", async (req: Request, res: Response) => {
-    
-    const newUser = req.body;
-    const user = await User.create({
-        
-        username: newUser.username,
-        name : newUser.name,
-        email: newUser.email,
-        password: newUser.password,
-        avatar: newUser.avatar,
-        bio: newUser.bio,
-    }).catch((error: Error) => console.log(error))
-    res.status(200).json(user);
-});
-
-//route pour créer un Controller via l'admin
-app.post("/admin/controller", async (req: Request, res: Response) => {
-    
-    const newController = req.body;
-    const controller = await Controller.create({
-        
-        name: newController.name,
-        description: newController.description
-        
-    }).catch((error: Error) => console.log(error))
-    res.status(200).json(controller);
-});
-
-//route pour créer un Tag via l'Admin
-app.post("/admin/tag", async (req: Request, res: Response) => {
-    
-    const newTag = req.body;
-    const tag = await Tag.create({
-        
-        name: newTag.name,
-        description: newTag.description
-        
-    }).catch((error: Error) => console.log(error))
-    res.status(200).json(tag);
-});
-
-
-//route pour créer un Status via l'Admin
-app.post("/admin/status", async (req: Request, res: Response) => {
-    
-    const newStatus = req.body;
-    const status = await Status.create({
-        
-        name: newStatus.name,
-        description: newStatus.description
-        
-    }).catch((error: Error) => console.log(error))
-    res.status(200).json(status);
-});
-
-//route pour créer une Platform via l'Admin
-app.post("/admin/platform", async (req: Request, res: Response) => {
-    
-    const newPlatform = req.body;
-    const platform = await Platform.create({
-        
-        name: newPlatform.name,
-        description: newPlatform.description
-        
-    }).catch((error: Error) => console.log(error))
-    res.status(200).json(platform);
-});
-
-//route pour créer un genre via l'Admin
-app.post("/admin/genre", async (req: Request, res: Response) => {
-    
-    const newGenre = req.body;
-    const genre = await Genre.create({
-        
-        name: newGenre.name,
-        description: newGenre.description
-        
-    }).catch((error: Error) => console.log(error))
-    res.status(200).json(genre);
-});
-
-//route pour créer un genre via l'Admin
-app.post("/admin/Language", async (req: Request, res: Response) => {
-    
-    const newLanguage = req.body;
-    const gelanguage = await Language.create({
-        
-        name: newLanguage.name,
-        code: newLanguage.code
-        
-    }).catch((error: Error) => console.log(error))
-    res.status(200).json(Language);
-});
-
-
 // routes
 app.use('/game',GameRoute);
-app.use('/genre',GenreRoute);
-app.use('/tag',TagRoute);
+app.use('/genres',GenreRoute);
+app.use('/tags',TagRoute);
 app.use('/data',DataRoute);
 app.use('/statuses',StatusRoute);
 app.use('/platforms',PlatformRoute);
 app.use('/controllers',ControllerRoute);
-app.use('/language',LanguageRoute)
-
+app.use('/languages',LanguageRoute)
+app.use('/user',UserRoute)
 
 //relations 
 Game.belongsToMany(User, { through: "Comment" });
@@ -156,8 +62,8 @@ Game.belongsToMany(User, { through: "Order" });
 Game.belongsToMany(Controller, { through: 'GameControllers' });
 Controller.belongsToMany(Game, { through: 'GameControllers' });
 
-Game.belongsToMany(Tag,{through:"GameTag"});
-Tag.belongsToMany(Game,{through:"GameTag"});
+Game.belongsToMany(Tag,{through:"GameTags"});
+Tag.belongsToMany(Game,{through:"GameTags"});
 
 Game.belongsTo(Status, { foreignKey: 'StatusId', as: 'status' });
 Status.hasMany(Game, { foreignKey: 'StatusId', as: 'games' });
@@ -171,8 +77,8 @@ Platform.belongsToMany(Game,{through:"GamePlatforms"});
 Game.belongsTo(Language, { foreignKey: 'LanguageId' as 'language'});
 Language.hasMany(Game, { foreignKey: 'LanguageId' as 'games'});
 
-Game.belongsToMany(Genre, { through: "GameGenre" });
-Genre.belongsToMany(Game, { through: "GameGenre" });
+Game.belongsToMany(Genre, { through: "GameGenres" });
+Genre.belongsToMany(Game, { through: "GameGenres" });
 
 Cart.belongsToMany(Game,{through:"GameCart"});
 Game.belongsToMany(Cart,{through:"GameCart"});
