@@ -1,20 +1,21 @@
-# Utiliser l'image officielle de Node.js
+# Utilise l'image Node.js
 FROM node:14
 
-# Définir le répertoire de travail à /app
-WORKDIR /app
+# Crée un répertoire de travail à l'intérieur du conteneur
+WORKDIR /usr/src/app
 
-# Copier le fichier package.json et installer les dépendances
+# Copie les fichiers package.json et package-lock.json
 COPY package*.json ./
+
+# Installe les dépendances
 RUN npm install
 
-# Copier tous les fichiers du projet dans le conteneur
+# Copie le reste de l'application dans le conteneur
 COPY . .
 
-# Exposer le port 9091
+# Expose le port sur lequel l'application va tourner
 EXPOSE 9091
 
-# Démarrer l'application Node.js
-CMD ["node", "build/app.js"]
-
+# Commande pour démarrer l'application
+CMD ["npm", "start"]
 

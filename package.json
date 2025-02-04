@@ -6,7 +6,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
+    "start": "node build/app.js && node build/initialization/script.js",
+    "dev": "ts-node src/app.ts",
     "clean": "tsc --build --clean"
   },
   "devDependencies": {
