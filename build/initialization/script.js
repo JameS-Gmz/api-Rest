@@ -1,12 +1,15 @@
 import { Controller } from "../Models/Controller.js";
+import { Game } from "../Models/Game.js";
 import { Genre } from "../Models/Genre.js";
 import { Language } from "../Models/Language.js";
 import { Platform } from "../Models/Platform.js";
 import { Role } from "../Models/Role.js";
 import { Status } from "../Models/Status.js";
 import { Tag } from "../Models/Tag.js";
+import { User } from "../Models/User.js";
 // init Roles
 export const initRoles = async () => {
+    console.log("Début de l'initialisation des rôles...");
     try {
         await Role.findOrCreate({
             where: { name: 'admin' },
@@ -20,6 +23,10 @@ export const initRoles = async () => {
             where: { name: 'developer' },
             defaults: { name: 'developer' }
         });
+        await Role.findOrCreate({
+            where: { name: 'superadmin' },
+            defaults: { name: 'superadmin' }
+        });
         console.log('Les rôles par défaut ont été créés.');
     }
     catch (error) {
@@ -27,12 +34,32 @@ export const initRoles = async () => {
     }
 };
 export const initCategories = async () => {
-    initGenres();
-    initTags();
-    initPlatforms();
-    initLanguages();
-    initControllers();
-    initStatus();
+    console.log("Début de l'initialisation des catégories...");
+    try {
+        await initStatus();
+        await initLanguages();
+        await initGenres();
+        await initTags();
+        await initPlatforms();
+        await initControllers();
+        console.log("Initialisation des catégories terminée avec succès.");
+    }
+    catch (error) {
+        console.error("Erreur lors de l'initialisation des catégories:", error);
+    }
+};
+// Ajout d'une fonction pour initialiser tout dans le bon ordre
+export const initializeAll = async () => {
+    console.log("Début de l'initialisation complète...");
+    try {
+        await initRoles();
+        await initCategories();
+        await initGames();
+        console.log("Initialisation complète terminée avec succès.");
+    }
+    catch (error) {
+        console.error("Erreur lors de l'initialisation complète:", error);
+    }
 };
 //init Genres
 const genres = [
@@ -92,6 +119,161 @@ export const initTags = async () => {
     }
     catch (error) {
         console.error('Erreur lors de l\'insertion des catégories de jeux :', error);
+    }
+};
+const games = [
+    {
+        title: "Battle Quest",
+        price: 19.99,
+        authorStudio: "Epic Games Studio",
+        madewith: "Unreal Engine 5",
+        description: "An epic action-adventure game with breathtaking visuals and a compelling storyline.",
+        createdAt: new Date('2024-01-15T12:00:00Z'),
+        updatedAt: new Date('2024-09-15T12:00:00Z'),
+        StatusId: 1,
+        LanguageId: 1
+    },
+    {
+        title: "Survival Island",
+        price: 14.99,
+        authorStudio: "Survive Studios",
+        madewith: "Unity",
+        description: "A survival game where you must gather resources and fight for your life on a deserted island.",
+        createdAt: new Date('2023-07-10T10:00:00Z'),
+        updatedAt: new Date('2023-08-12T12:00:00Z'),
+        StatusId: 2,
+        LanguageId: 3
+    },
+    {
+        title: "Space Odyssey",
+        price: 29.99,
+        authorStudio: "Galaxy Interactive",
+        madewith: "Godot Engine",
+        description: "A space exploration game set in a massive open world with realistic physics and environments.",
+        createdAt: new Date('2024-02-01T14:00:00Z'),
+        updatedAt: new Date('2024-03-01T12:00:00Z'),
+        StatusId: 1,
+        LanguageId: 2
+    },
+    {
+        title: "Fantasy Warriors",
+        price: 39.99,
+        authorStudio: "Dragon Lore Studios",
+        madewith: "RPG Maker",
+        description: "A role-playing game filled with fantasy creatures, magic, and heroic quests.",
+        createdAt: new Date('2023-06-20T09:00:00Z'),
+        updatedAt: new Date('2023-07-20T15:00:00Z'),
+        StatusId: 3,
+        LanguageId: 4
+    },
+    {
+        title: "Cyber Runner",
+        price: 24.99,
+        authorStudio: "Neon Dreams",
+        madewith: "Unity",
+        description: "A fast-paced cyberpunk racing game with neon-lit streets and futuristic vehicles.",
+        createdAt: new Date('2024-03-15T11:00:00Z'),
+        updatedAt: new Date('2024-04-15T12:00:00Z'),
+        StatusId: 1,
+        LanguageId: 1
+    },
+    {
+        title: "Mystic Realms",
+        price: 34.99,
+        authorStudio: "Enchanted Games",
+        madewith: "Unreal Engine 5",
+        description: "An open-world fantasy RPG with magical creatures and ancient mysteries to uncover.",
+        createdAt: new Date('2023-12-01T09:00:00Z'),
+        updatedAt: new Date('2024-01-01T10:00:00Z'),
+        StatusId: 2,
+        LanguageId: 2
+    },
+    {
+        title: "Zombie Apocalypse",
+        price: 19.99,
+        authorStudio: "Horror Studios",
+        madewith: "Unity",
+        description: "A survival horror game where you must fight hordes of zombies in a post-apocalyptic world.",
+        createdAt: new Date('2023-09-20T14:00:00Z'),
+        updatedAt: new Date('2023-10-20T15:00:00Z'),
+        StatusId: 3,
+        LanguageId: 3
+    },
+    {
+        title: "Ocean Explorer",
+        price: 29.99,
+        authorStudio: "Marine Adventures",
+        madewith: "Godot Engine",
+        description: "Dive into the depths of the ocean and discover hidden treasures and mysterious sea creatures.",
+        createdAt: new Date('2024-02-10T10:00:00Z'),
+        updatedAt: new Date('2024-03-10T11:00:00Z'),
+        StatusId: 1,
+        LanguageId: 4
+    },
+    {
+        title: "Racing Legends",
+        price: 39.99,
+        authorStudio: "Speed Masters",
+        madewith: "Unreal Engine 5",
+        description: "A realistic racing simulator featuring legendary cars and challenging tracks from around the world.",
+        createdAt: new Date('2023-11-15T13:00:00Z'),
+        updatedAt: new Date('2023-12-15T14:00:00Z'),
+        StatusId: 2,
+        LanguageId: 1
+    },
+    {
+        title: "Puzzle Master",
+        price: 14.99,
+        authorStudio: "Brain Games",
+        madewith: "Unity",
+        description: "A collection of challenging puzzles and brain teasers to test your problem-solving skills.",
+        createdAt: new Date('2024-01-05T08:00:00Z'),
+        updatedAt: new Date('2024-02-05T09:00:00Z'),
+        StatusId: 1,
+        LanguageId: 2
+    }
+];
+export const initGames = async () => {
+    try {
+        console.log("Début de l'initialisation des jeux...");
+        console.log("Nombre de jeux à créer:", games.length);
+        for (const game of games) {
+            console.log(`Tentative de création du jeu: ${game.title}`);
+            try {
+                const [created] = await Game.findOrCreate({
+                    where: { title: game.title },
+                    defaults: {
+                        description: game.description,
+                        price: game.price,
+                        authorStudio: game.authorStudio,
+                        madewith: game.madewith,
+                        createdAt: game.createdAt,
+                        updatedAt: game.updatedAt,
+                        StatusId: game.StatusId,
+                        LanguageId: game.LanguageId
+                    }
+                });
+                if (created) {
+                    console.log(`Jeu créé avec succès: ${game.title}`);
+                }
+                else {
+                    console.log(`Jeu déjà existant: ${game.title}`);
+                }
+            }
+            catch (error) {
+                console.error(`Erreur lors de la création du jeu ${game.title}:`, error);
+            }
+        }
+        console.log("Initialisation des jeux terminée.");
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.error('Erreur détaillée lors de l\'initialisation des jeux:', error.message);
+            console.error('Stack trace:', error.stack);
+        }
+        else {
+            console.error('Erreur inconnue lors de l\'initialisation des jeux:', error);
+        }
     }
 };
 //init Platforms
@@ -257,10 +439,10 @@ const initControllers = async () => {
                 defaults: { description: controller.description }
             });
         }
-        console.log("Les langues ont été insérées avec succès.");
+        console.log("Les contrôleurs ont été insérés avec succès.");
     }
     catch (error) {
-        console.error('Erreur lors de l\'insertion des langues :', error);
+        console.error('Erreur lors de l\'insertion des contrôleurs :', error);
     }
 };
 const statuses = [
@@ -293,9 +475,60 @@ const initStatus = async () => {
                 defaults: { description: status.description }
             });
         }
-        console.log("Les langues ont été insérées avec succès.");
+        console.log("Les statuts ont été insérés avec succès.");
     }
     catch (error) {
-        console.error('Erreur lors de l\'insertion des langues :', error);
+        console.error('Erreur lors de l\'insertion des statuts :', error);
+    }
+};
+const initUsers = async () => {
+    console.log("Début de l'initialisation des utilisateurs...");
+    try {
+        // Récupération des rôles
+        const adminRole = await Role.findOne({ where: { name: 'admin' } });
+        const userRole = await Role.findOne({ where: { name: 'user' } });
+        const developerRole = await Role.findOne({ where: { name: 'developer' } });
+        const superadminRole = await Role.findOne({ where: { name: 'superadmin' } });
+        // Création des utilisateurs
+        await User.findOrCreate({
+            where: { email: 'admin@example.com' },
+            defaults: {
+                email: 'admin@example.com',
+                password: 'Admin123!',
+                username: 'AdminUser',
+                roleId: adminRole?.dataValues.id
+            }
+        });
+        await User.findOrCreate({
+            where: { email: 'user@example.com' },
+            defaults: {
+                email: 'user@example.com',
+                password: 'User123!',
+                username: 'RegularUser',
+                roleId: userRole?.dataValues.id
+            }
+        });
+        await User.findOrCreate({
+            where: { email: 'dev@example.com' },
+            defaults: {
+                email: 'dev@example.com',
+                password: 'Dev123!',
+                username: 'GameDev',
+                roleId: developerRole?.dataValues.id
+            }
+        });
+        await User.findOrCreate({
+            where: { email: 'super@example.com' },
+            defaults: {
+                email: 'super@example.com',
+                password: 'Super123!',
+                username: 'SuperAdmin',
+                roleId: superadminRole?.dataValues.id
+            }
+        });
+        console.log('Les utilisateurs par défaut ont été créés.');
+    }
+    catch (error) {
+        console.error('Erreur lors de la création des utilisateurs par défaut :', error);
     }
 };

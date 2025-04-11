@@ -67,7 +67,7 @@ export const Game = sequelize.define("Game", {
         onUpdate: 'CASCADE',
     }
 });
-GameRoute.post('/new', authorizeRole(['developer']), async (req, res) => {
+GameRoute.post('/new', authorizeRole(['developer', 'admin']), async (req, res) => {
     const { title, description, price, authorStudio, madewith, StatusId, LanguageId } = req.body;
     try {
         const game = await Game.create({ title, description, price, authorStudio, madewith, StatusId, LanguageId });
@@ -78,7 +78,7 @@ GameRoute.post('/new', authorizeRole(['developer']), async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la création du jeu' });
     }
 });
-GameRoute.post('/new/manyGames', authorizeRole(['admin']), async (req, res) => {
+GameRoute.post('/new/manyGames', authorizeRole(['admin', 'developer', 'user']), async (req, res) => {
     try {
         // Assurez-vous que req.body est un tableau d'objets de jeux
         const games = [
@@ -253,7 +253,7 @@ GameRoute.get('/search', async (req, res) => {
     }
 });
 //route qui supprime un jeu selon son id
-GameRoute.delete("/delete/:id", authorizeRole(['admin']), async (req, res) => {
+GameRoute.delete("/delete/:id", authorizeRole(['admin', 'developer']), async (req, res) => {
     try {
         const id = req.params.id;
         const nbDeletedGames = await Game.destroy({
@@ -334,6 +334,52 @@ GameRoute.post('/associate-categories', async (req, res) => {
     catch (error) {
         console.error('Erreur lors de l\'association des catégories:', error);
         res.status(500).json({ error: 'Erreur lors de l\'association des catégories' });
+    }
+});
+GameRoute.delete('/delete/:id', authorizeRole(['admin', 'developer', 'superadmin']), async (req, res) => {
+    const gameId = req.params.id;
+    try {
+        const game = await Game.findByPk(gameId);
+        if (!game) {
+            return res.status(404).json({ message: "Jeu non trouvé" });
+        }
+        // Supprimer d'abord les associations dans les tables de jointure
+        await sequelize.models.GameControllers.destroy({ where: { GameId: gameId } });
+        await sequelize.models.GamePlatforms.destroy({ where: { GameId: gameId } });
+        await sequelize.models.GameGenres.destroy({ where: { GameId: gameId } });
+        await sequelize.models.GameTags.destroy({ where: { GameId: gameId } });
+        // Supprimer le jeu
+        await game.destroy();
+        res.status(200).json({ message: "Jeu supprimé avec succès" });
+    }
+    catch (error) {
+        console.error("Erreur lors de la suppression du jeu :", error);
+        res.status(500).json({ message: "Erreur serveur lors de la suppression du jeu" });
+    }
+});
+GameRoute.put('/update/:id', authorizeRole(['admin', 'developer', 'superadmin']), async (req, res) => {
+    const gameId = req.params.id;
+    const { title, description, price, authorStudio, madewith, StatusId, LanguageId } = req.body;
+    try {
+        const game = await Game.findByPk(gameId);
+        if (!game) {
+            return res.status(404).json({ message: "Jeu non trouvé" });
+        }
+        // Mettre à jour les champs du jeu
+        await game.update({
+            title,
+            description,
+            price,
+            authorStudio,
+            madewith,
+            StatusId,
+            LanguageId
+        });
+        res.status(200).json({ message: "Jeu mis à jour avec succès", game });
+    }
+    catch (error) {
+        console.error("Erreur lors de la mise à jour du jeu :", error);
+        res.status(500).json({ message: "Erreur serveur lors de la mise à jour du jeu" });
     }
 });
 // GameRoute.post('/filter', async (req, res) => {

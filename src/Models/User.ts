@@ -20,7 +20,7 @@ export const User = sequelize.define("User", {
         }
     },
     email: {
-        type: DataTypes.STRING(50),  // Ne pas utiliser TEXT ici
+        type: DataTypes.STRING(50),
         allowNull: false,
         validate: {
             isEmail: {
@@ -118,10 +118,11 @@ UserRoute.post('/signup', async (req, res) => {
                 userId: userWithRole.dataValues.id,
                 email: userWithRole.dataValues.email,
                 role: userWithRole.dataValues.role.name,  // Inclure le rôle dans le token
-                bio: userWithRole.dataValues.bio
+                bio: userWithRole.dataValues.bio,
+                birthday: userWithRole.dataValues.birthday
             },
             secretKey,
-            { expiresIn: '1h' }
+            { expiresIn: '2h' }
         );
 
         // Envoyer la réponse avec le token
@@ -135,16 +136,13 @@ UserRoute.post('/signup', async (req, res) => {
     }
 });
 
-
 UserRoute.post('/signin', async (req, res) => {
     const { email, password } = req.body;
 
-
     try {
-        const user = await User.findOne({ where: { email }, include: [{ model: Role, as: 'role' }]  });
+        const user = await User.findOne({ where: { email }, include: [{ model: Role, as: 'role' }] });
         if (!user) {
             return res.status(404).json({ message: 'Adresse e-mail ou mot de passe incorrect' });
-
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.dataValues.password);
@@ -153,29 +151,322 @@ UserRoute.post('/signin', async (req, res) => {
             return res.status(401).json({ message: 'Adresse e-mail ou mot de passe incorrect' });
         }
 
+        // Générer un nouveau token avec un timestamp unique
+        const timestamp = Date.now();
         const token = jwt.sign(
             {
                 username: user.dataValues.username,
                 userId: user.dataValues.id,
                 email: user.dataValues.email,
                 role: user.dataValues.role ? user.dataValues.role.name : 'user',
-                bio : user.dataValues.bio
+                bio: user.dataValues.bio,
+                birthday: user.dataValues.birthday,
+                timestamp: timestamp // Ajouter le timestamp pour rendre chaque token unique
+            },
+            secretKey,
+            { expiresIn: '2h' }
+        );
+
+        // Stocker le nouveau token dans la réponse
+        res.status(200).json({
+            message: 'Connexion réussie',
+            token,
+            userId: user.dataValues.id,
+            username: user.dataValues.username,
+            role: user.dataValues.role?.name,
+            bio: user.dataValues.bio,
+            birthday: user.dataValues.birthday
+        });
+    } catch (error) {
+        console.error('Erreur lors de la connexion :', error);
+        res.status(500).json({ message: 'Erreur serveur' });
+    }
+});
+
+
+UserRoute.put('/profile/:id', authorizeRole(['user', 'developer', 'admin', 'superadmin']), async (req, res) => {
+    const userId = req.params.id;
+    const { username, email, bio, avatar, birthday, role } = req.body;
+    
+    try {
+        // Rechercher l'utilisateur avec son rôle
+        const user = await User.findByPk(userId, { include: [{ model: Role, as: 'role' }] });
+        if (!user) {
+            return res.status(404).json({ error: 'Utilisateur non trouvé' });
+        }
+        
+        // Mise à jour de l'utilisateur
+        await user.update({ username, email, bio, avatar, birthday, role });
+        
+        // Recharger l'utilisateur mis à jour avec son rôle
+        const updatedUser = await User.findByPk(userId, { include: [{ model: Role, as: 'role' }] });
+        
+        // Générer un nouveau token avec les infos à jour
+        const token = jwt.sign(
+            {
+                username: updatedUser?.dataValues.username,
+                userId: updatedUser?.dataValues.id,
+                email: updatedUser?.dataValues.email,
+                role: updatedUser?.dataValues.role.name ? updatedUser?.dataValues.role.name : 'user',
+                bio: updatedUser?.dataValues.bio,
+                avatar: updatedUser?.dataValues.avatar,
+                birthday: updatedUser?.dataValues.birthday,
+            },
+            secretKey,
+            { expiresIn: '1h' }
+        );
+        
+        res.status(200).json({
+            message: 'Profil mis à jour avec succès',
+            user: updatedUser,
+            token
+        });
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du profil :', error);
+        res.status(500).json({ error: 'Erreur lors de la mise à jour du profil' });
+    }
+});
+
+UserRoute.post('/assign-developer/:userId', authorizeRole(['admin', 'superadmin']), async (req, res) => {
+    const userId = req.params.userId;
+    
+    try {
+        // Récupérer le rôle "developer"
+        const developerRole = await Role.findOne({ where: { name: 'developer' } });
+        
+        if (!developerRole) {
+            return res.status(404).json({ message: "Le rôle 'developer' n'existe pas" });
+        }
+        
+        // Récupérer l'utilisateur
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+        
+        // Mettre à jour l'utilisateur avec le RoleId du développeur
+        await user.update({ RoleId: developerRole.dataValues.id });
+        
+        // Recharger les relations de l'utilisateur, y compris le rôle
+        await user.reload({ include: [{ model: Role, as: 'role' }] });
+        
+        // Générer un nouveau token JWT avec le rôle mis à jour
+        const token = jwt.sign(
+            {
+                username: user.dataValues.username,
+                userId: user.dataValues.id,
+                email: user.dataValues.email,
+                role: user.dataValues.role ? user.dataValues.role.name : 'user'  // Rôle mis à jour
             },
             secretKey,
             { expiresIn: '1h' }
         );
 
         res.status(200).json({
-            message: 'Connexion réussie',
-            token,
+            message: 'Rôle "developer" attribué avec succès et token régénéré',
+            token,  // Envoyer le nouveau token
             userId: user.dataValues.id,
             username: user.dataValues.username,
-            role : user.dataValues.role?.name,
-            bio : user.dataValues.bio
+            role: user.dataValues.role ? user.dataValues.role.name : 'user'
         });
     } catch (error) {
-        console.error('Erreur lors de la connexion :', error);
-        res.status(500).json({ message: 'Erreur serveur' });
+        console.error('Erreur lors de l\'attribution du rôle :', error);
+        res.status(500).json({ message: 'Erreur lors de l\'attribution du rôle' });
+    }
+});
+
+UserRoute.post('/assign-admin/:userId' , authorizeRole(['admin', 'superadmin']), async (req, res) => {
+    const userId = req.params.userId;
+    
+    try {
+        // Récupérer le rôle "admin"
+        const adminRole = await Role.findOne({ where: { name: 'admin' } });
+        
+        if (!adminRole) {
+            return res.status(404).json({ message: "Le rôle 'admin' n'existe pas" });
+        }
+        
+        // Récupérer l'utilisateur
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+        
+        // Mettre à jour l'utilisateur avec le RoleId de l'admin
+        await user.update({ RoleId: adminRole.dataValues.id });
+        
+        // Recharger les relations de l'utilisateur, y compris le rôle
+        await user.reload({ include: [{ model: Role, as: 'role' }] });
+        
+        // Générer un nouveau token JWT avec le rôle mis à jour
+        const token = jwt.sign(
+            {
+                username: user.dataValues.username,
+                userId: user.dataValues.id,
+                email: user.dataValues.email,
+                role: user.dataValues.role ? user.dataValues.role.name : 'user'  // Rôle mis à jour
+            },
+            secretKey,
+            { expiresIn: '1h' }
+        );
+        
+        res.status(200).json({
+            message: 'Rôle "admin" attribué avec succès et token régénéré',
+            token,  // Envoyer le nouveau token
+            userId: user.dataValues.id,
+            username: user.dataValues.username,
+            role: user.dataValues.role ? user.dataValues.role.name : 'user'
+        });
+    } catch (error) {
+        console.error('Erreur lors de l\'attribution du rôle :', error);
+        res.status(500).json({ message: 'Erreur lors de l\'attribution du rôle' });
+    }
+});
+
+UserRoute.post('/assign-user/:userId', authorizeRole(['admin', 'superadmin']), async (req, res) => {
+    const userId = req.params.userId;
+    
+    try {
+        // Récupérer le rôle "user"
+        const userRole = await Role.findOne({ where: { name: 'user' } });
+        
+        if (!userRole) {
+            return res.status(404).json({ message: "Le rôle 'user' n'existe pas" });
+        }
+        
+        // Récupérer l'utilisateur
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+        
+        // Mettre à jour l'utilisateur avec le RoleId de l'user
+        await user.update({ RoleId: userRole.dataValues.id });
+        
+        // Recharger les relations de l'utilisateur, y compris le rôle
+        await user.reload({ include: [{ model: Role, as: 'role' }] });
+        
+        // Générer un nouveau token JWT avec le rôle mis à jour
+        const token = jwt.sign(
+            {
+                username: user.dataValues.username,
+                userId: user.dataValues.id,
+                email: user.dataValues.email,
+                role: user.dataValues.role ? user.dataValues.role.name : 'user'  // Rôle mis à jour
+            },
+            secretKey,
+            { expiresIn: '1h' }
+        );
+        
+        res.status(200).json({
+            message: 'Rôle "user" attribué avec succès et token régénéré',
+            token,  // Envoyer le nouveau token
+            userId: user.dataValues.id,
+            username: user.dataValues.username,
+            role: user.dataValues.role ? user.dataValues.role.name : 'user'
+        });
+    } catch (error) {
+        console.error('Erreur lors de l\'attribution du rôle :', error);
+        res.status(500).json({ message: 'Erreur lors de l\'attribution du rôle' });
+    }
+});
+
+UserRoute.post('/assign-superadmin/:userId', authorizeRole(['superadmin']), async (req, res) => {
+    const userId = req.params.userId;
+    
+    try {
+        // Récupérer le rôle "superadmin"
+        const superadminRole = await Role.findOne({ where: { name: 'superadmin' } });
+        
+        if (!superadminRole) {
+            return res.status(404).json({ message: "Le rôle 'superadmin' n'existe pas" });
+        }
+        
+        // Récupérer l'utilisateur
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+
+        // Mettre à jour l'utilisateur avec le RoleId du superadmin
+        await user.update({ RoleId: superadminRole.dataValues.id });
+        
+        // Recharger les relations de l'utilisateur, y compris le rôle
+        await user.reload({ include: [{ model: Role, as: 'role' }] });
+
+        // Générer un nouveau token JWT avec le rôle mis à jour
+        const token = jwt.sign(
+            {
+                username: user.dataValues.username,
+                userId: user.dataValues.id,
+                email: user.dataValues.email,
+                role: user.dataValues.role ? user.dataValues.role.name : 'superadmin'  // Rôle mis à jour
+            },
+            secretKey,
+            { expiresIn: '1h' }
+        );
+        
+        res.status(200).json({
+            message: 'Rôle "superadmin" attribué avec succès et token régénéré',
+            token,  // Envoyer le nouveau token
+            userId: user.dataValues.id,
+            username: user.dataValues.username,
+            role: user.dataValues.role ? user.dataValues.role.name : 'superadmin'
+        });
+    } catch (error) {
+        console.error('Erreur lors de l\'attribution du rôle :', error);
+        res.status(500).json({ message: 'Erreur lors de l\'attribution du rôle' });
+    }
+});
+
+
+UserRoute.get('/all', authorizeRole(['admin', 'superadmin']), async (req, res) => {
+    try {
+        const users = await User.findAll({ 
+            include: [{ 
+                model: Role, 
+                as: 'role',
+                attributes: ['name'] // Spécifier explicitement les attributs du rôle
+            }],
+            attributes: ['id', 'username', 'email', 'bio', 'avatar', 'birthday', 'createdAt'] // Spécifier les attributs de l'utilisateur
+        });
+        
+        // Transformer les données pour s'assurer que le rôle est correctement formaté
+        const formattedUsers = users.map(user => ({
+            ...user.dataValues,
+            role: user.dataValues.role ? user.dataValues. role.name : 'user' // Assurer que le rôle est toujours présent
+        }));
+        
+        res.status(200).json(formattedUsers);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des utilisateurs :', error);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération des utilisateurs' });
+    }
+});
+
+UserRoute.get('/check-token', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ message: 'Token manquant' });
+    }
+    
+    try {
+        const decoded = jwt.verify(token, secretKey) as { exp: number };
+        const expirationDate = new Date(decoded.exp * 1000); // Convertir le timestamp Unix en Date
+        const currentDate = new Date();
+        const timeLeft = Math.floor((expirationDate.getTime() - currentDate.getTime()) / 1000); // Temps restant en secondes
+        
+        res.status(200).json({
+            isValid: true,
+            expiresIn: timeLeft,
+            expirationDate: expirationDate.toISOString()
+        });
+    } catch (error) {
+        res.status(401).json({
+            isValid: false,
+            message: 'Token invalide ou expiré'
+        });
     }
 });
 
@@ -201,83 +492,43 @@ UserRoute.get('/id/:id', async (req, res) => {
     }
 });
 
-UserRoute.put('/profile/:id', authorizeRole(['user']),async (req, res) => {
+UserRoute.delete('/:id', authorizeRole(['admin', 'superadmin']), async (req, res) => {
     const userId = req.params.id;
-    const { username, email, bio, avatar, birthday } = req.body;  // Récupère les nouvelles données
-
+    
     try {
-        // Rechercher l'utilisateur
         const user = await User.findByPk(userId);
+
         if (!user) {
-            return res.status(404).json({ error: 'Utilisateur non trouvé' });
+            return res.status(404).json({ message: "Utilisateur non trouvé" });
         }
 
-        // Mise à jour de l'utilisateur
-        const updatedUser = await user.update({
-            username,
-            email,
-            bio,
-            avatar,
-            birthday,
-        });
-
-        res.status(200).json({
-            message: 'Profil mis à jour avec succès',
-            user: updatedUser,
-        });
+        await user.destroy();
+        
+        res.status(200).json({ message: "Utilisateur supprimé avec succès" });
     } catch (error) {
-        console.error('Erreur lors de la mise à jour du profil :', error);
-        res.status(500).json({ error: 'Erreur lors de la mise à jour du profil' });
+        console.error("Erreur lors de la suppression de l'utilisateur :", error);
+        res.status(500).json({ message: "Erreur serveur lors de la suppression de l'utilisateur" });
     }
 });
 
-UserRoute.post('/assign-developer/:userId', async (req, res) => {
-    const userId = req.params.userId;
+UserRoute.get('/username/:username', async (req, res) => {
+    const username = req.params.username;
 
     try {
-      // Récupérer le rôle "developer"
-      const developerRole = await Role.findOne({ where: { name: 'developer' } });
-  
-      if (!developerRole) {
-        return res.status(404).json({ message: "Le rôle 'developer' n'existe pas" });
-      }
-  
-      // Récupérer l'utilisateur
-      const user = await User.findByPk(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'Utilisateur non trouvé' });
-      }
-  
-      // Mettre à jour l'utilisateur avec le RoleId du développeur
-      user.RoleId = developerRole.dataValues.id;
-      await user.save();
-  
-      // Recharger les relations de l'utilisateur, y compris le rôle
-      await user.reload({ include: [{ model: Role, as: 'role' }] });
-  
-      // Générer un nouveau token JWT avec le rôle mis à jour
-      const token = jwt.sign(
-        {
-          username: user.dataValues.username,
-          userId: user.dataValues.id,
-          email: user.dataValues.email,
-          role: user.dataValues.role ? user.dataValues.role.name : 'user'  // Rôle mis à jour
-        },
-        secretKey,
-        { expiresIn: '1h' }
-      );
-  
-      res.status(200).json({
-        message: 'Rôle "developer" attribué avec succès et token régénéré',
-        token,  // Envoyer le nouveau token
-        userId: user.dataValues.id,
-        username: user.dataValues.username,
-        role: user.dataValues.role ? user.dataValues.role.name : 'user'
-      });
-    } catch (error) {
-      console.error('Erreur lors de l\'attribution du rôle :', error);
-      res.status(500).json({ message: 'Erreur lors de l\'attribution du rôle' });
-    }
-  });
+        // Rechercher l'utilisateur par username
+        const user = await User.findOne({
+            where: { username },
+            attributes: ['username', 'email', 'bio', 'avatar', 'birthday', 'createdAt']
+        });
 
+        if (!user) {
+            return res.status(404).json({ message: "Utilisateur non trouvé" });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Erreur lors de la récupération de l'utilisateur :", error);
+        res.status(500).json({ message: "Erreur serveur lors de la récupération de l'utilisateur" });
+    }
+});
 

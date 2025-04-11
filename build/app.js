@@ -9,9 +9,9 @@ import { Platform, PlatformRoute } from './Models/Platform.js';
 import { Genre, GenreRoute } from './Models/Genre.js';
 import { DataRoute } from './Data.js';
 import { Language, LanguageRoute } from './Models/Language.js';
-import { Role } from "./Models/Role.js";
+import { Role, RoleRoute } from "./Models/Role.js";
 import { Cart } from "./Models/Cart.js";
-import { initCategories, initRoles } from "./initialization/script.js";
+import { initializeAll } from "./initialization/script.js";
 const app = express();
 app.use(express.json());
 // error failed to fetch --> Cors head
@@ -36,6 +36,7 @@ app.use('/platforms', PlatformRoute);
 app.use('/controllers', ControllerRoute);
 app.use('/languages', LanguageRoute);
 app.use('/user', UserRoute);
+app.use('/role', RoleRoute);
 //relations 
 Game.belongsToMany(User, { through: "Comment" });
 User.belongsToMany(Game, { through: "Comment" });
@@ -63,8 +64,11 @@ Cart.belongsToMany(Game, { through: "GameCart" });
 Game.belongsToMany(Cart, { through: "GameCart" });
 User.hasOne(Cart);
 Cart.belongsTo(User);
-app.listen(9090, () => {
-    console.log("Server on port 9090");
+// Initialiser la base de données avant de démarrer le serveur
+initializeAll().then(() => {
+    app.listen(9090, () => {
+        console.log("Server on port 9090");
+    });
+}).catch(error => {
+    console.error("Erreur lors de l'initialisation:", error);
 });
-initCategories();
-initRoles();

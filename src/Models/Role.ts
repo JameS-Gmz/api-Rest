@@ -15,3 +15,17 @@ export const Role = sequelize.define("Role", {
     description: DataTypes.STRING(255)
 });
 
+import { Router } from "express";
+
+export const RoleRoute = Router();
+
+RoleRoute.get('/all', async (req, res) => {
+    try {
+        const roles = await Role.findAll();
+        res.status(200).json(roles);
+    } catch (error) {
+        console.error("Erreur lors de la récupération des rôles :", error);
+        res.status(500).json({ message: "Erreur serveur lors de la récupération des rôles" });
+    }
+});
+

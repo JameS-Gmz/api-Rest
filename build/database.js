@@ -8,7 +8,7 @@ const login = {
 export const sequelize = new Sequelize(login.database, login.username, login.password, {
     host: 'localhost',
     dialect: 'mysql',
-    logging: false //enleve les log de sequelize
+    logging: false
 });
 sequelize.authenticate()
     .then(() => console.log("Connecté à la BDD : PlayForge"))
