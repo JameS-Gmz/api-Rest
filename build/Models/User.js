@@ -189,7 +189,7 @@ UserRoute.put('/profile/:id', authorizeRole(['user', 'developer', 'admin', 'supe
         res.status(500).json({ error: 'Erreur lors de la mise à jour du profil' });
     }
 });
-UserRoute.post('/assign-developer/:userId', authorizeRole(['admin', 'superadmin']), async (req, res) => {
+UserRoute.post('/assign-developer/:userId', authorizeRole(['user', 'admin', 'superadmin']), async (req, res) => {
     const userId = req.params.userId;
     try {
         // Récupérer le rôle "developer"
@@ -300,7 +300,7 @@ UserRoute.post('/assign-user/:userId', authorizeRole(['admin', 'superadmin']), a
         res.status(500).json({ message: 'Erreur lors de l\'attribution du rôle' });
     }
 });
-UserRoute.post('/assign-superadmin/:userId', authorizeRole(['superadmin']), async (req, res) => {
+UserRoute.post('/assign-superadmin/:userId', authorizeRole(['superadmin', 'user', 'developer', 'admin']), async (req, res) => {
     const userId = req.params.userId;
     try {
         // Récupérer le rôle "superadmin"

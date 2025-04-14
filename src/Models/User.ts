@@ -183,7 +183,6 @@ UserRoute.post('/signin', async (req, res) => {
     }
 });
 
-
 UserRoute.put('/profile/:id', authorizeRole(['user', 'developer', 'admin', 'superadmin']), async (req, res) => {
     const userId = req.params.id;
     const { username, email, bio, avatar, birthday, role } = req.body;
@@ -227,7 +226,7 @@ UserRoute.put('/profile/:id', authorizeRole(['user', 'developer', 'admin', 'supe
     }
 });
 
-UserRoute.post('/assign-developer/:userId', authorizeRole(['admin', 'superadmin']), async (req, res) => {
+UserRoute.post('/assign-developer/:userId', authorizeRole(['user', 'admin', 'superadmin']), async (req, res) => {
     const userId = req.params.userId;
     
     try {
@@ -275,7 +274,7 @@ UserRoute.post('/assign-developer/:userId', authorizeRole(['admin', 'superadmin'
     }
 });
 
-UserRoute.post('/assign-admin/:userId' , authorizeRole(['admin', 'superadmin']), async (req, res) => {
+UserRoute.post('/assign-admin/:userId', authorizeRole(['admin', 'superadmin']), async (req, res) => {
     const userId = req.params.userId;
     
     try {
@@ -371,7 +370,7 @@ UserRoute.post('/assign-user/:userId', authorizeRole(['admin', 'superadmin']), a
     }
 });
 
-UserRoute.post('/assign-superadmin/:userId', authorizeRole(['superadmin']), async (req, res) => {
+UserRoute.post('/assign-superadmin/:userId', authorizeRole(['superadmin','user', 'developer', 'admin']), async (req, res) => {
     const userId = req.params.userId;
     
     try {
