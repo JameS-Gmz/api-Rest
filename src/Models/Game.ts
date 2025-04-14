@@ -270,7 +270,7 @@ GameRoute.get('/search', async (req, res) => {
     }
 });
 //route qui supprime un jeu selon son id
-GameRoute.delete("/delete/:id",authorizeRole(['admin','developer'],), async (req, res) => {
+GameRoute.delete("/delete/:id",authorizeRole(['admin','developer','superadmin']), async (req, res) => {
     try {
         const id = req.params.id;
 
