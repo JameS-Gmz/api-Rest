@@ -403,7 +403,6 @@ GameRoute.delete('/delete/:id', authorizeRole(['admin', 'developer','superadmin'
         res.status(500).json({ message: "Erreur serveur lors de la suppression du jeu" });
     }
 });
-
 GameRoute.put('/update/:id', authorizeRole(['admin', 'developer','superadmin']), async (req, res) => {
     const gameId = req.params.id;
     const { title, description, price, authorStudio, madewith, StatusId, LanguageId } = req.body;
@@ -415,7 +414,7 @@ GameRoute.put('/update/:id', authorizeRole(['admin', 'developer','superadmin']),
             return res.status(404).json({ message: "Jeu non trouvé" });
         }
 
-        // Mettre à jour les champs du jeu
+        // Mettre à jour les champs du jeu avec la date de mise à jour
         await game.update({
             title,
             description,
@@ -423,7 +422,8 @@ GameRoute.put('/update/:id', authorizeRole(['admin', 'developer','superadmin']),
             authorStudio,
             madewith,
             StatusId,
-            LanguageId
+            LanguageId,
+            updatedAt: new Date() // Force la mise à jour de la date
         });
 
         res.status(200).json({ message: "Jeu mis à jour avec succès", game });
@@ -432,6 +432,22 @@ GameRoute.put('/update/:id', authorizeRole(['admin', 'developer','superadmin']),
         res.status(500).json({ message: "Erreur serveur lors de la mise à jour du jeu" });
     }
 });
+
+GameRoute.get('/last-updated', async (req, res) => {
+    try {
+        const games = await Game.findAll({
+            order: [['updatedAt', 'DESC']],
+            limit: 5
+        });
+
+        res.status(200).json(games);
+    } catch (error) {
+        console.error("Erreur lors de la récupération des jeux mis à jour :", error);
+        res.status(500).json({ message: "Erreur serveur lors de la récupération des jeux mis à jour" });    
+    }
+});
+
+
 
 
 
