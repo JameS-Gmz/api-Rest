@@ -7,6 +7,7 @@ import { Role } from "../Models/Role.js";
 import { Status } from "../Models/Status.js";
 import { Tag } from "../Models/Tag.js";
 import { User } from "../Models/User.js";
+import bcrypt from 'bcrypt';
 
 // init Roles
 
@@ -55,6 +56,7 @@ export const initializeAll = async () => {
   console.log("Début de l'initialisation complète...");
   try {
     await initRoles();
+    await initUsers();
     await initCategories();
     await initGames();
     console.log("Initialisation complète terminée avec succès.");
@@ -135,7 +137,8 @@ const games = [
     createdAt: new Date('2024-01-15T12:00:00Z'),
     updatedAt: new Date('2024-09-15T12:00:00Z'),
     StatusId: 1,
-    LanguageId: 1
+    LanguageId: 1,
+    UserId: 3,
   },
   {
     title: "Survival Island",
@@ -146,7 +149,8 @@ const games = [
     createdAt: new Date('2023-07-10T10:00:00Z'),
     updatedAt: new Date('2023-08-12T12:00:00Z'),
     StatusId: 2,
-    LanguageId: 3
+    LanguageId: 3,
+    UserId: 3,
   },
   {
     title: "Space Odyssey",
@@ -157,7 +161,8 @@ const games = [
     createdAt: new Date('2024-02-01T14:00:00Z'),
     updatedAt: new Date('2024-03-01T12:00:00Z'),
     StatusId: 1,
-    LanguageId: 2
+    LanguageId: 2,
+    UserId: 3,
   },
   {
     title: "Fantasy Warriors",
@@ -168,7 +173,8 @@ const games = [
     createdAt: new Date('2023-06-20T09:00:00Z'),
     updatedAt: new Date('2023-07-20T15:00:00Z'),
     StatusId: 3,
-    LanguageId: 4
+    LanguageId: 4,
+    UserId: 3,
   },
   {
     title: "Cyber Runner",
@@ -179,7 +185,8 @@ const games = [
     createdAt: new Date('2024-03-15T11:00:00Z'),
     updatedAt: new Date('2024-04-15T12:00:00Z'),
     StatusId: 1,
-    LanguageId: 1
+    LanguageId: 1,
+    UserId: 3,
   },
   {
     title: "Mystic Realms",
@@ -190,7 +197,8 @@ const games = [
     createdAt: new Date('2023-12-01T09:00:00Z'),
     updatedAt: new Date('2024-01-01T10:00:00Z'),
     StatusId: 2,
-    LanguageId: 2
+    LanguageId: 2,
+    UserId: 3,
   },
   {
     title: "Zombie Apocalypse",
@@ -201,7 +209,8 @@ const games = [
     createdAt: new Date('2023-09-20T14:00:00Z'),
     updatedAt: new Date('2023-10-20T15:00:00Z'),
     StatusId: 3,
-    LanguageId: 3
+    LanguageId: 3,
+    UserId: 3,
   },
   {
     title: "Ocean Explorer",
@@ -212,7 +221,8 @@ const games = [
     createdAt: new Date('2024-02-10T10:00:00Z'),
     updatedAt: new Date('2024-03-10T11:00:00Z'),
     StatusId: 1,
-    LanguageId: 4
+    LanguageId: 4,
+    UserId: 3,
   },
   {
     title: "Racing Legends",
@@ -223,7 +233,8 @@ const games = [
     createdAt: new Date('2023-11-15T13:00:00Z'),
     updatedAt: new Date('2023-12-15T14:00:00Z'),
     StatusId: 2,
-    LanguageId: 1
+    LanguageId: 1,
+    UserId: 3,
   },
   {
     title: "Puzzle Master",
@@ -234,7 +245,8 @@ const games = [
     createdAt: new Date('2024-01-05T08:00:00Z'),
     updatedAt: new Date('2024-02-05T09:00:00Z'),
     StatusId: 1,
-    LanguageId: 2
+    LanguageId: 2,
+    UserId: 3 ,
   }
 ];
 
@@ -250,6 +262,7 @@ export const initGames = async () => {
         const [created] = await Game.findOrCreate({
           where: { title: game.title },
           defaults: {
+            title: game.title,
             description: game.description,
             price: game.price,
             authorStudio: game.authorStudio,
@@ -257,7 +270,8 @@ export const initGames = async () => {
             createdAt: game.createdAt,
             updatedAt: game.updatedAt,
             StatusId: game.StatusId,
-            LanguageId: game.LanguageId
+            LanguageId: game.LanguageId,
+            UserId: game.UserId
           }
         });
 
@@ -500,14 +514,26 @@ const initUsers = async () => {
     const developerRole = await Role.findOne({ where: { name: 'developer' } });
     const superadminRole = await Role.findOne({ where: { name: 'superadmin' } });
 
-    // Création des utilisateurs
+    if (!adminRole || !userRole || !developerRole || !superadminRole) {
+      throw new Error('Un ou plusieurs rôles n\'ont pas été trouvés');
+    }
+
+    // Hachage des mots de passe
+    const hashedAdminPassword = await bcrypt.hash('Admin123!', 12);
+    const hashedUserPassword = await bcrypt.hash('User123!', 12);
+    const hashedDevPassword = await bcrypt.hash('Developer123!', 12);
+    const hashedSuperPassword = await bcrypt.hash('Superadmin123!', 12);
+
+    // Création des utilisateurs avec les IDs de rôles corrects
     await User.findOrCreate({
       where: { email: 'admin@example.com' },
       defaults: {
         email: 'admin@example.com',
-        password: 'Admin123!',
+        password: hashedAdminPassword,
         username: 'AdminUser',
-        roleId: adminRole?.dataValues.id
+        bio: 'I am an admin user',
+        birthday: new Date('1990-01-01'),
+        RoleId: adminRole.dataValues.id
       }
     });
 
@@ -515,9 +541,11 @@ const initUsers = async () => {
       where: { email: 'user@example.com' },
       defaults: {
         email: 'user@example.com',
-        password: 'User123!',
+        password: hashedUserPassword,
         username: 'RegularUser',
-        roleId: userRole?.dataValues.id
+        bio: 'I am a regular user',
+        birthday: new Date('1990-01-01'),
+        RoleId: userRole.dataValues.id
       }
     });
 
@@ -525,9 +553,11 @@ const initUsers = async () => {
       where: { email: 'dev@example.com' },
       defaults: {
         email: 'dev@example.com',
-        password: 'Dev123!',
+        password: hashedDevPassword,
         username: 'GameDev',
-        roleId: developerRole?.dataValues.id
+        bio: 'I am a developer user',
+        birthday: new Date('1990-01-01'),
+        RoleId: developerRole.dataValues.id
       }
     });
 
@@ -535,13 +565,15 @@ const initUsers = async () => {
       where: { email: 'super@example.com' },
       defaults: {
         email: 'super@example.com',
-        password: 'Super123!',
+        password: hashedSuperPassword,
         username: 'SuperAdmin',
-        roleId: superadminRole?.dataValues.id
+        bio: 'I am a superadmin user',
+        birthday: new Date('1990-01-01'),
+        RoleId: superadminRole.dataValues.id
       }
     });
 
-    console.log('Les utilisateurs par défaut ont été créés.');
+    console.log('Les utilisateurs par défaut ont été créés avec leurs rôles respectifs et leurs mots de passe hachés.');
   } catch (error) {
     console.error('Erreur lors de la création des utilisateurs par défaut :', error);
   }

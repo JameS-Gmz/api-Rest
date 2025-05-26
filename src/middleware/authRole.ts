@@ -65,25 +65,27 @@ export const authorizeRole = (allowedRoles: Array<keyof typeof ROLES>) => {
 
 // Middleware pour vérifier uniquement le token sans le rôle
 export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers['authorization'];
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
-    req.user = { id: '', role: 'guest' };
-    return next();
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Token d\'authentification manquant' });
   }
 
-  const tokenValue = token.split(' ')[1];
+  const tokenValue = authHeader.split(' ')[1];
   if (!tokenValue) {
-    req.user = { id: '', role: 'guest' };
-    return next();
+    return res.status(401).json({ message: 'Format de token invalide' });
   }
 
   try {
-    const decoded = jwt.verify(tokenValue, secretKey) as { id: string; role: keyof typeof ROLES };
-    req.user = decoded;
+    const decoded = jwt.verify(tokenValue, secretKey) as any;
+    // S'assurer que l'ID utilisateur est disponible dans req.user
+    req.user = {
+      id: decoded.userId || decoded.id,
+      role: decoded.role
+    };
     next();
   } catch (error) {
-    req.user = { id: '', role: 'guest' };
-    next();
+    console.error('Erreur de vérification du token:', error);
+    return res.status(401).json({ message: 'Token invalide ou expiré' });
   }
 };

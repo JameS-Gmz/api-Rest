@@ -1,5 +1,5 @@
 import { sequelize } from "../database.js";
-import { DataTypes, DECIMAL, DOUBLE, Op, Sequelize, STRING } from "sequelize";
+import { DataTypes, DECIMAL, DOUBLE, Op, Sequelize, STRING, Model, Optional } from "sequelize";
 import { Router } from 'express';
 import { Controller } from "./Controller.js";
 import { Platform } from "./Platform.js";
@@ -8,17 +8,59 @@ import { Language } from "./Language.js";
 import { Genre } from "./Genre.js";
 import { Tag } from "./Tag.js";
 import { authorizeRole, verifyToken } from "../middleware/authRole.js";
+import { User } from "./User.js";
+import { Role } from "./Role.js";
 
+// Interface pour le modèle Game
+interface GameAttributes {
+    id: number;
+    title: string;
+    price: number;
+    authorStudio?: string;
+    madewith?: string;
+    description?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+    StatusId?: number;
+    LanguageId?: number;
+    UserId?: number;
+}
+
+// Interface pour la création, où l'ID est optionnel
+interface GameCreationAttributes extends Optional<GameAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+
+// Interface pour les méthodes d'instance
+interface GameInstance extends Model<GameAttributes, GameCreationAttributes> {
+    id: number;
+    addControllers: (controllerIds: number[]) => Promise<void>;
+    addPlatforms: (platformIds: number[]) => Promise<void>;
+    addGenres: (genreIds: number[]) => Promise<void>;
+    addTags: (tagIds: number[]) => Promise<void>;
+}
+
+interface GameWithRelations extends GameAttributes {
+    genres?: Array<{ id: number }>;
+    tags?: Array<{ id: number }>;
+}
 
 export const GameRoute = Router();
-export const Game = sequelize.define("Game", {
+export const Game = sequelize.define<GameInstance>("Game", {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
     title: {
         type: STRING(100),
-        allowNull: true,
+        allowNull: false,
+        validate: {
+            notEmpty: true
+        }
     },
     price: {
         type: DOUBLE,
-        allowNull: true,
+        allowNull: false,
+        defaultValue: 0,
         validate: {
             max: 100,
             min: 0,
@@ -39,44 +81,90 @@ export const Game = sequelize.define("Game", {
     createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
-        field: 'createdAt',
-        allowNull: true,
     },
     updatedAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
-        field: 'updatedAt',
-        allowNull: true,
     },
     StatusId: {
         type: DataTypes.INTEGER,
-        allowNull: true,  // Autoriser NULL pour éviter l'erreur
+        allowNull: true,
         references: {
             model: 'Statuses',
             key: 'id',
-        },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
+        }
     },
     LanguageId: {
         type: DataTypes.INTEGER,
-        allowNull: true,  // Autoriser NULL pour éviter l'erreur
+        allowNull: true,
         references: {
             model: 'Languages',
             key: 'id',
-        },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
+        }
+    },
+    UserId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'Users',
+            key: 'id',
+        }
     }
 });
 
-GameRoute.post('/new', authorizeRole(['developer','admin']),async (req, res) => {
-    const { title, description, price, authorStudio, madewith,StatusId,LanguageId } = req.body;
+// Note: All relationships are now managed in associations.ts
 
+GameRoute.post('/new', authorizeRole(['developer','admin']), async (req, res) => {
     try {
-        const game = await Game.create({ title, description, price, authorStudio, madewith, StatusId,LanguageId });
+        const { 
+            title, description, price, authorStudio, madewith, 
+            StatusId, LanguageId, UserId,
+            controllerIds, platformIds, genreIds, tagIds 
+        } = req.body;
 
-        res.status(201).json(game);
+        // Création du jeu
+        const game = await Game.create({ 
+            title, description, price, authorStudio, 
+            madewith, StatusId, LanguageId, UserId 
+        });
+
+        // Ajout des relations many-to-many si fournies
+        if (controllerIds?.length) {
+            await game.addControllers(controllerIds);
+        }
+        if (platformIds?.length) {
+            await game.addPlatforms(platformIds);
+        }
+        if (genreIds?.length) {
+            await game.addGenres(genreIds);
+        }
+        if (tagIds?.length) {
+            await game.addTags(tagIds);
+        }
+
+        // Ajouter automatiquement le jeu à la bibliothèque du développeur
+        if (UserId) {
+            await sequelize.models.Library.create({
+                GameId: game.id,
+                UserId: UserId
+            });
+            console.log(`Jeu ${game.id} ajouté à la bibliothèque de l'utilisateur ${UserId}`);
+        }
+
+        // Récupération du jeu avec toutes ses relations
+        const gameWithRelations = await Game.findByPk(game.id, {
+            include: [
+                { model: Controller, as: 'controllers' },
+                { model: Platform, as: 'platforms' },
+                { model: Genre, as: 'genres' },
+                { model: Tag, as: 'tags' },
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' },
+                { model: User, as: 'gameOwner' }
+            ]
+        });
+
+        res.status(201).json(gameWithRelations);
     } catch (error) {
         console.error('Erreur lors de la création du jeu :', error);
         res.status(500).json({ error: 'Erreur lors de la création du jeu' });
@@ -188,40 +276,80 @@ GameRoute.post('/new/manyGames',authorizeRole(['admin','developer','user']), asy
 
 GameRoute.get("/AllGames", async (req, res) => {
     try {
-        const games = await Game.findAll()
+        const games = await Game.findAll({
+            include: [
+                { model: Controller, as: 'controllers' },
+                { model: Platform, as: 'platforms' },
+                { model: Genre, as: 'genres' },
+                { model: Tag, as: 'tags' },
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' },
+                { model: User, as: 'gameOwner' }
+            ]
+        });
         res.status(200).json(games);
     } catch (error) {
-        console.log(error);
+        console.error('Erreur lors de la récupération des jeux:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux' });
     }
 });
 
 GameRoute.get("/id/:gameId", async (req, res) => {
     try {
-        const game_id = req.params.gameId
-        const game = await Game.findByPk(game_id)
+        const gameId = req.params.gameId;
+        const game = await Game.findByPk(gameId, {
+            include: [
+                { model: Controller, as: 'controllers' },
+                { model: Platform, as: 'platforms' },
+                { model: Genre, as: 'genres' },
+                { model: Tag, as: 'tags' },
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' },
+                { model: User, as: 'gameOwner' }
+            ]
+        });
+
+        if (!game) {
+            return res.status(404).json({ error: 'Jeu non trouvé' });
+        }
 
         res.status(200).json(game);
     } catch (error) {
-        console.log(error);
+        console.error('Erreur lors de la récupération du jeu:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération du jeu' });
     }
 });
 
-//route qui recupere des produits selon une intervalle de pris definis par l'utilisateur
 GameRoute.get("/price/:min/:max", async (req, res) => {
     try {
-        const min = req.params.min;
-        const max = req.params.max;
+        const min = parseFloat(req.params.min);
+        const max = parseFloat(req.params.max);
+
+        if (isNaN(min) || isNaN(max)) {
+            return res.status(400).json({ error: 'Les prix minimum et maximum doivent être des nombres' });
+        }
 
         const games = await Game.findAll({
             where: {
                 price: {
                     [Op.between]: [min, max]
                 }
-            }
-        })
+            },
+            include: [
+                { model: Controller, as: 'controllers' },
+                { model: Platform, as: 'platforms' },
+                { model: Genre, as: 'genres' },
+                { model: Tag, as: 'tags' },
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' },
+                { model: User, as: 'gameOwner' }
+            ]
+        });
+
         res.status(200).json(games);
     } catch (error) {
-        console.log(error);
+        console.error('Erreur lors de la recherche des jeux par prix:', error);
+        res.status(500).json({ error: 'Erreur lors de la recherche des jeux par prix' });
     }
 });
 
@@ -270,7 +398,7 @@ GameRoute.get('/search', async (req, res) => {
     }
 });
 //route qui supprime un jeu selon son id
-GameRoute.delete("/delete/:id",authorizeRole(['admin','developer','superadmin']), async (req, res) => {
+    GameRoute.delete("/delete/:id",authorizeRole(['admin','developer','superadmin']), async (req, res) => {
     try {
         const id = req.params.id;
 
@@ -293,13 +421,30 @@ GameRoute.delete("/delete/:id",authorizeRole(['admin','developer','superadmin'])
 });
 
 GameRoute.post('/associate-categories', async (req, res) => {
-    const { GameId, ControllerId, PlatformId, StatusId, LanguageId, tagId, genreId } = req.body;
+    const { GameId, ControllerId, PlatformId, StatusId, LanguageId, TagId, GenreId } = req.body;
+    
+    console.log('Données reçues:', {
+        GameId,
+        ControllerId,
+        PlatformId,
+        StatusId,
+        LanguageId,
+        TagId,
+        GenreId
+    });
 
     // Convertir en tableau d'IDs si nécessaire
     const controllerIds = Array.isArray(ControllerId) ? ControllerId.map(id => parseInt(id, 10)) : [parseInt(ControllerId, 10)];
     const platformIds = Array.isArray(PlatformId) ? PlatformId.map(id => parseInt(id, 10)) : [parseInt(PlatformId, 10)];
-    const tagIds= Array.isArray(tagId) ? tagId.map(id => parseInt(id, 10)) : [];
-    const genreIds = Array.isArray(genreId) ? genreId.map(id => parseInt(id, 10)) : [];
+    const tagIds = Array.isArray(TagId) ? TagId.map(id => parseInt(id, 10)) : TagId ? [parseInt(TagId, 10)] : [];
+    const genreIds = Array.isArray(GenreId) ? GenreId.map(id => parseInt(id, 10)) : GenreId ? [parseInt(GenreId, 10)] : [];
+
+    console.log('IDs après conversion:', {
+        controllerIds,
+        platformIds,
+        tagIds,
+        genreIds
+    });
 
     try {
         // Vérifier que le jeu existe
@@ -309,72 +454,108 @@ GameRoute.post('/associate-categories', async (req, res) => {
         }
 
         // Vérifier que le statut existe
-        const status = await Status.findByPk(StatusId);
-        if (!status) {
-            return res.status(404).json({ error: 'Statut non trouvé' });
+        if (StatusId) {
+            const status = await Status.findByPk(StatusId);
+            if (!status) {
+                return res.status(404).json({ error: 'Statut non trouvé' });
+            }
+            await game.update({ StatusId });
         }
-
-        // Mettre à jour le jeu avec le statut
-        game.dataValues.StatusId = StatusId;
-        await game.save();
 
         // Vérifier que la langue existe
-        const language = await Language.findByPk(LanguageId);
-        if (!language) {
-            return res.status(404).json({ error: 'Langue non trouvée' });
+        if (LanguageId) {
+            const language = await Language.findByPk(LanguageId);
+            if (!language) {
+                return res.status(404).json({ error: 'Langue non trouvée' });
+            }
+            await game.update({ LanguageId });
         }
-
-        // Mettre à jour le jeu avec la langue
-        game.dataValues.LanguageId = LanguageId;
-        await game.save();
 
         // Rechercher et associer les contrôleurs
-        const controllers = await Controller.findAll({ where: { id: controllerIds } });
-        if (!controllers.length) {
-            return res.status(400).json({ error: 'Aucun contrôleur trouvé pour les IDs spécifiés' });
+        if (controllerIds.length > 0) {
+            console.log('Association des contrôleurs:', controllerIds);
+            const controllers = await Controller.findAll({ where: { id: controllerIds } });
+            if (!controllers.length) {
+                return res.status(400).json({ error: 'Aucun contrôleur trouvé pour les IDs spécifiés' });
+            }
+            await sequelize.models.GameControllers.destroy({ where: { GameId } });
+            await sequelize.models.GameControllers.bulkCreate(
+                controllerIds.map(id => ({ GameId, ControllerId: id }))
+            );
         }
-
-        await sequelize.models.GameControllers.bulkCreate(
-            controllerIds.map(id => ({ GameId, ControllerId: id }))
-        );
 
         // Rechercher et associer les plateformes
-        const platforms = await Platform.findAll({ where: { id: platformIds } });
-        if (!platforms.length) {
-            return res.status(400).json({ error: 'Aucune plateforme trouvée pour les IDs spécifiés' });
+        if (platformIds.length > 0) {
+            console.log('Association des plateformes:', platformIds);
+            const platforms = await Platform.findAll({ where: { id: platformIds } });
+            if (!platforms.length) {
+                return res.status(400).json({ error: 'Aucune plateforme trouvée pour les IDs spécifiés' });
+            }
+            await sequelize.models.GamePlatforms.destroy({ where: { GameId } });
+            await sequelize.models.GamePlatforms.bulkCreate(
+                platformIds.map(id => ({ GameId, PlatformId: id }))
+            );
         }
 
-        await sequelize.models.GamePlatforms.bulkCreate(
-            platformIds.map(id => ({ GameId, PlatformId: id }))
-        );
-
         // Rechercher et associer les genres
-        if (genreIds.length) {
+        if (genreIds.length > 0) {
+            console.log('Association des genres:', genreIds);
             const genres = await Genre.findAll({ where: { id: genreIds } });
+            console.log('Genres trouvés:', genres.map(g => (g.toJSON() as any).id));
             if (!genres.length) {
                 return res.status(400).json({ error: 'Aucun genre trouvé pour les IDs spécifiés' });
             }
-
-            await sequelize.models.GameGenres.bulkCreate(
-                genreIds.map(id => ({ GameId, GenreId: id }))
-            );
+            await sequelize.models.GameGenres.destroy({ where: { GameId } });
+            const genreAssociations = genreIds.map(id => ({ GameId, GenreId: id }));
+            console.log('Création des associations de genres:', genreAssociations);
+            await sequelize.models.GameGenres.bulkCreate(genreAssociations);
         }
 
         // Rechercher et associer les tags
-        if (tagIds.length) {
+        if (tagIds.length > 0) {
+            console.log('Association des tags:', tagIds);
             const tags = await Tag.findAll({ where: { id: tagIds } });
+            console.log('Tags trouvés:', tags.map(t => (t.toJSON() as any).id));
             if (!tags.length) {
                 return res.status(400).json({ error: 'Aucun tag trouvé pour les IDs spécifiés' });
             }
-
-            await sequelize.models.GameTags.bulkCreate(
-                tagIds.map(id => ({ GameId, TagId: id }))
-            );
+            await sequelize.models.GameTags.destroy({ where: { GameId } });
+            const tagAssociations = tagIds.map(id => ({ GameId, TagId: id }));
+            console.log('Création des associations de tags:', tagAssociations);
+            await sequelize.models.GameTags.bulkCreate(tagAssociations);
         }
-        res.status(200).json({ message: 'Jeu mis à jour avec succès avec les contrôleurs, plateformes, genres, tags et statut.' });
-    } catch (error) {
-        console.error('Erreur lors de l\'association des catégories:', error);
-        res.status(500).json({ error: 'Erreur lors de l\'association des catégories' });
+
+        // Récupérer le jeu mis à jour avec toutes ses relations
+        const updatedGame = await Game.findByPk(GameId, {
+            include: [
+                { model: Controller, as: 'controllers' },
+                { model: Platform, as: 'platforms' },
+                { model: Genre, as: 'genres' },
+                { model: Tag, as: 'tags' },
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' }
+            ]
+        });
+
+        if (updatedGame) {
+            const gameJSON = updatedGame.toJSON() as GameWithRelations;
+            console.log('Jeu mis à jour:', {
+                id: gameJSON.id,
+                genres: gameJSON.genres?.map((g: { id: number }) => g.id),
+                tags: gameJSON.tags?.map((t: { id: number }) => t.id)
+            });
+        }
+
+        res.status(200).json({ 
+            message: 'Jeu mis à jour avec succès avec les catégories associées.',
+            game: updatedGame
+        });
+    } catch (error: any) {
+        console.error('Erreur détaillée lors de l\'association des catégories:', error);
+        res.status(500).json({ 
+            error: 'Erreur lors de l\'association des catégories',
+            details: error.message 
+        });
     }
 });
 
@@ -447,44 +628,206 @@ GameRoute.get('/last-updated', async (req, res) => {
     }
 });
 
+// Route pour récupérer les jeux d'un développeur spécifique
+GameRoute.get('/developer/:developerId', authorizeRole(['admin', 'developer', 'superadmin']), async (req, res) => {
+    try {
+        const developerId = req.params.developerId;
+        const games = await Game.findAll({
+            where: { UserId: developerId },
+            include: [
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' }
+            ]
+        });
+        res.status(200).json(games);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des jeux du développeur:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux du développeur' });
+    }
+});
+
+// Route pour récupérer les statistiques des jeux
+GameRoute.get('/stats', authorizeRole(['admin', 'superadmin']), async (req, res) => {
+    try {
+        const totalGames = await Game.count();
+        const totalPrice = await Game.sum('price');
+        const averagePrice = totalPrice / totalGames;
+        const gamesByStatus = await Game.findAll({
+            attributes: ['StatusId', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
+            group: ['StatusId'],
+            include: [{ model: Status, as: 'status' }]
+        });
+        const gamesByLanguage = await Game.findAll({
+            attributes: ['LanguageId', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
+            group: ['LanguageId'],
+            include: [{ model: Language, as: 'language' }]
+        });
+
+        res.status(200).json({
+            totalGames,
+            averagePrice,
+            gamesByStatus,
+            gamesByLanguage
+        });
+    } catch (error) {
+        console.error('Erreur lors de la récupération des statistiques:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des statistiques' });
+    }
+});
+
+// Route pour récupérer les jeux les plus récents
+GameRoute.get('/recent', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit as string) || 5;
+        const games = await Game.findAll({
+            order: [['createdAt', 'DESC']],
+            limit,
+            include: [
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' }
+            ]
+        });
+        res.status(200).json(games);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des jeux récents:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux récents' });
+    }
+});
+
+// Route pour récupérer les jeux les plus chers
+GameRoute.get('/most-expensive', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit as string) || 5;
+        const games = await Game.findAll({
+            order: [['price', 'DESC']],
+            limit,
+            include: [
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' }
+            ]
+        });
+        res.status(200).json(games);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des jeux les plus chers:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux les plus chers' });
+    }
+});
+
+// Route pour récupérer les jeux par statut
+GameRoute.get('/by-status/:statusId', async (req, res) => {
+    try {
+        const statusId = req.params.statusId;
+        const games = await Game.findAll({
+            where: { StatusId: statusId },
+            include: [
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' }
+            ]
+        });
+        res.status(200).json(games);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des jeux par statut:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux par statut' });
+    }
+});
+
+// Route pour récupérer les jeux par langue
+GameRoute.get('/by-language/:languageId', async (req, res) => {
+    try {
+        const languageId = req.params.languageId;
+        const games = await Game.findAll({
+            where: { LanguageId: languageId },
+            include: [
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' }
+            ]
+        });
+        res.status(200).json(games);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des jeux par langue:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux par langue' });
+    }
+});
+
+// Route pour récupérer les jeux par prix (intervalle)
+GameRoute.get('/by-price-range', async (req, res) => {
+    try {
+        const minPrice = parseFloat(req.query.min as string) || 0;
+        const maxPrice = parseFloat(req.query.max as string) || 100;
+
+        const games = await Game.findAll({
+            where: {
+                price: {
+                    [Op.between]: [minPrice, maxPrice]
+                }
+            },
+            include: [
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' }
+            ]
+        });
+        res.status(200).json(games);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des jeux par prix:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux par prix' });
+    }
+});
+
+// Route pour récupérer les jeux avec leurs relations complètes
+GameRoute.get('/with-relations/:id', async (req, res) => {
+    try {
+        const gameId = req.params.id;
+        const game = await Game.findByPk(gameId, {
+            include: [
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' },
+                { model: Controller, as: 'controllers' },
+                { model: Platform, as: 'platforms' },
+                { model: Genre, as: 'genres' },
+                { model: Tag, as: 'tags' }
+            ]
+        });
+        if (!game) {
+            return res.status(404).json({ error: 'Jeu non trouvé' });
+        }
+        res.status(200).json(game);
+    } catch (error) {
+        console.error('Erreur lors de la récupération du jeu avec ses relations:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération du jeu avec ses relations' });
+    }
+});
+
+// Route pour récupérer les jeux par UserId
+GameRoute.get('/by-user/:userId', authorizeRole(['developer']), async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log('Fetching games for user ID:', userId);
+
+        const games = await Game.findAll({
+            where: { UserId: userId },
+            include: [
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' },
+                { model: Controller, as: 'controllers' },
+                { model: Platform, as: 'platforms' },
+                { model: Genre, as: 'genres' },
+                { model: Tag, as: 'tags' },
+                { model: User, as: 'gameOwner' }
+            ]
+        });
+
+        if (!games || games.length === 0) {
+            return res.status(404).json({ message: 'Aucun jeu trouvé pour cet utilisateur' });
+        }
+
+        res.status(200).json(games);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des jeux:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux' });
+    }
+});
 
 
-
-
-
-// GameRoute.post('/filter', async (req, res) => {
-//   const { genre, platform, language, controller, status, tag } = req.body;  // Filtres envoyés par le client
-
-//   try {
-//     // Construire les conditions de la requête Sequelize
-//     const whereConditions = {};
-
-//     if (genre) whereConditions.genreId = genre;
-//     if (platform) whereConditions.platformId = platform;
-//     if (language) whereConditions.languageId = language;
-//     if (controller) whereConditions.controllerId = controller;
-//     if (status) whereConditions.statusId = status;
-//     if (tag) whereConditions.tagId = tag;
-
-//     // Trouver les jeux en fonction des filtres
-//     const games = await Game.findAll({
-//       where: whereConditions,
-//       include: [
-//         { model: Genre, as: 'genre' },
-//         { model: Platform, as: 'platform' },
-//         { model: Language, as: 'language' },
-//         { model: Controller, as: 'controller' },
-//         { model: Status, as: 'status' },
-//         { model: Tag, as: 'tag' }
-//       ]
-//     });
-
-//     res.json(games);
-//   } catch (error) {
-//     console.error('Erreur lors de la récupération des jeux filtrés :', error);
-//     res.status(500).json({ error: 'Erreur serveur lors de la récupération des jeux' });
-//   }
-// });
 
 
 

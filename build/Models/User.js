@@ -4,7 +4,14 @@ import { Router } from "express";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
 import { Role } from "./Role.js";
-import { authorizeRole, secretKey } from "../middleware/authRole.js";
+import { authorizeRole, secretKey, verifyToken } from "../middleware/authRole.js";
+import { Game } from "./Game.js";
+import { Status } from "./Status.js";
+import { Language } from "./Language.js";
+import { Controller } from "./Controller.js";
+import { Platform } from "./Platform.js";
+import { Genre } from "./Genre.js";
+import { Tag } from "./Tag.js";
 // Vérifiez que la clé secrète est bien définie
 export const User = sequelize.define("User", {
     username: {
@@ -432,5 +439,272 @@ UserRoute.get('/username/:username', async (req, res) => {
     catch (error) {
         console.error("Erreur lors de la récupération de l'utilisateur :", error);
         res.status(500).json({ message: "Erreur serveur lors de la récupération de l'utilisateur" });
+    }
+});
+// Route pour récupérer les statistiques des utilisateurs
+UserRoute.get('/stats', authorizeRole(['admin', 'superadmin']), async (req, res) => {
+    try {
+        const totalUsers = await User.count();
+        const usersByRole = await User.findAll({
+            attributes: ['RoleId', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
+            group: ['RoleId'],
+            include: [{ model: Role, as: 'role' }]
+        });
+        res.status(200).json({
+            totalUsers,
+            usersByRole
+        });
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération des statistiques des utilisateurs:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des statistiques des utilisateurs' });
+    }
+});
+// Route pour récupérer les jeux d'un utilisateur
+UserRoute.get('/:userId/games', authorizeRole(['admin', 'developer', 'superadmin']), async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const games = await Game.findAll({
+            where: { UserId: userId },
+            include: [
+                { model: Status, as: 'status' },
+                { model: Language, as: 'language' }
+            ]
+        });
+        res.status(200).json(games);
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération des jeux de l\'utilisateur:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux de l\'utilisateur' });
+    }
+});
+// Route pour récupérer les utilisateurs avec leurs rôles
+UserRoute.get('/with-roles', authorizeRole(['admin', 'superadmin']), async (req, res) => {
+    try {
+        const users = await User.findAll({
+            include: [{ model: Role, as: 'role' }]
+        });
+        res.status(200).json(users);
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération des utilisateurs avec leurs rôles:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des utilisateurs avec leurs rôles' });
+    }
+});
+// Route pour récupérer les utilisateurs par rôle
+UserRoute.get('/by-role/:roleId', authorizeRole(['admin', 'superadmin']), async (req, res) => {
+    try {
+        const roleId = req.params.roleId;
+        const users = await User.findAll({
+            where: { RoleId: roleId },
+            include: [{ model: Role, as: 'role' }]
+        });
+        res.status(200).json(users);
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération des utilisateurs par rôle:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des utilisateurs par rôle' });
+    }
+});
+// Route pour récupérer les développeurs
+UserRoute.get('/developers', async (req, res) => {
+    try {
+        const developerRole = await Role.findOne({ where: { name: 'developer' } });
+        if (!developerRole) {
+            return res.status(404).json({ error: 'Rôle développeur non trouvé' });
+        }
+        const developers = await User.findAll({
+            where: { RoleId: developerRole.dataValues.id },
+            include: [{ model: Role, as: 'role' }]
+        });
+        res.status(200).json(developers);
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération des développeurs:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des développeurs' });
+    }
+});
+// Route pour récupérer les administrateurs
+UserRoute.get('/admins', authorizeRole(['admin', 'superadmin']), async (req, res) => {
+    try {
+        const adminRole = await Role.findOne({ where: { name: 'admin' } });
+        if (!adminRole) {
+            return res.status(404).json({ error: 'Rôle administrateur non trouvé' });
+        }
+        const admins = await User.findAll({
+            where: { RoleId: adminRole.dataValues.id },
+            include: [{ model: Role, as: 'role' }]
+        });
+        res.status(200).json(admins);
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération des administrateurs:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des administrateurs' });
+    }
+});
+// Route pour récupérer les superadministrateurs
+UserRoute.get('/superadmins', authorizeRole(['superadmin']), async (req, res) => {
+    try {
+        const superadminRole = await Role.findOne({ where: { name: 'superadmin' } });
+        if (!superadminRole) {
+            return res.status(404).json({ error: 'Rôle superadministrateur non trouvé' });
+        }
+        const superadmins = await User.findAll({
+            where: { RoleId: superadminRole.dataValues.id },
+            include: [{ model: Role, as: 'role' }]
+        });
+        res.status(200).json(superadmins);
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération des superadministrateurs:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des superadministrateurs' });
+    }
+});
+// Route pour récupérer l'ID du développeur connecté
+UserRoute.get('/current-developer-id', authorizeRole(['developer']), async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'Token non fourni' });
+        }
+        const decoded = jwt.verify(token, secretKey);
+        const userId = decoded.userId;
+        // Vérifier que l'utilisateur est bien un développeur
+        const user = await User.findByPk(userId, {
+            include: [{ model: Role, as: 'role' }]
+        });
+        if (!user || user.dataValues.role.name !== 'developer') {
+            return res.status(403).json({ error: 'L\'utilisateur n\'est pas un développeur' });
+        }
+        res.status(200).json(userId);
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération de l\'ID du développeur:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération de l\'ID du développeur' });
+    }
+});
+UserRoute.get('/library/allgames', verifyToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId || req.user?.id;
+        console.log('Token décodé:', req.user);
+        console.log('Récupération des jeux pour userId:', userId);
+        if (!userId) {
+            return res.status(401).json({ error: 'Utilisateur non authentifié' });
+        }
+        const userWithGames = await sequelize.models.User.findByPk(userId, {
+            include: [
+                {
+                    model: sequelize.models.Game,
+                    as: 'libraryGames',
+                    through: { attributes: [] }, // Cache la table Library dans le résultat
+                    include: [
+                        { model: Status, as: 'status' },
+                        { model: Language, as: 'language' },
+                        { model: Controller, as: 'controllers' },
+                        { model: Platform, as: 'platforms' },
+                        { model: Genre, as: 'genres' },
+                        { model: Tag, as: 'tags' },
+                        { model: User, as: 'gameOwner' }
+                    ]
+                }
+            ]
+        });
+        if (!userWithGames) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+        const games = userWithGames.get('libraryGames');
+        if (!games || games.length === 0) {
+            return res.status(404).json({ message: 'Aucun jeu trouvé dans votre bibliothèque' });
+        }
+        res.status(200).json(games);
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération des jeux:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux' });
+    }
+});
+// Route pour ajouter un jeu à la bibliothèque
+UserRoute.post('/library/games/:gameId', verifyToken, async (req, res) => {
+    try {
+        // Récupérer l'ID utilisateur du token (peut être dans userId ou id)
+        const userId = req.user?.userId || req.user?.id;
+        const gameId = req.params.gameId;
+        if (!userId) {
+            return res.status(401).json({ error: 'Utilisateur non authentifié' });
+        }
+        // Vérifier si le jeu existe
+        const game = await Game.findByPk(gameId);
+        if (!game) {
+            return res.status(404).json({ error: 'Jeu non trouvé' });
+        }
+        // Vérifier si le jeu est déjà dans la bibliothèque
+        const existingLibrary = await sequelize.models.Library.findOne({
+            where: {
+                UserId: userId,
+                GameId: gameId
+            }
+        });
+        if (existingLibrary) {
+            return res.status(400).json({ error: 'Ce jeu est déjà dans votre bibliothèque' });
+        }
+        // Ajouter le jeu à la bibliothèque
+        await sequelize.models.Library.create({
+            UserId: userId,
+            GameId: gameId,
+            addedAt: new Date()
+        });
+        res.status(201).json({ message: 'Jeu ajouté à votre bibliothèque avec succès' });
+    }
+    catch (error) {
+        console.error('Erreur lors de l\'ajout du jeu à la bibliothèque:', error);
+        res.status(500).json({ error: 'Erreur lors de l\'ajout du jeu à la bibliothèque' });
+    }
+});
+// Route pour supprimer un jeu de la bibliothèque
+UserRoute.delete('/library/games/:gameId', verifyToken, async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        const gameId = req.params.gameId;
+        if (!userId) {
+            return res.status(401).json({ error: 'Utilisateur non authentifié' });
+        }
+        // Vérifier si le jeu est dans la bibliothèque
+        const libraryEntry = await sequelize.models.Library.findOne({
+            where: {
+                UserId: userId,
+                GameId: gameId
+            }
+        });
+        if (!libraryEntry) {
+            return res.status(404).json({ error: 'Ce jeu n\'est pas dans votre bibliothèque' });
+        }
+        // Supprimer le jeu de la bibliothèque
+        await libraryEntry.destroy();
+        res.status(200).json({ message: 'Jeu retiré de votre bibliothèque avec succès' });
+    }
+    catch (error) {
+        console.error('Erreur lors de la suppression du jeu de la bibliothèque:', error);
+        res.status(500).json({ error: 'Erreur lors de la suppression du jeu de la bibliothèque' });
+    }
+});
+// Route pour vérifier si un jeu est dans la bibliothèque
+UserRoute.get('/library/games/:gameId/check', verifyToken, async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        const gameId = req.params.gameId;
+        if (!userId) {
+            return res.status(401).json({ error: 'Utilisateur non authentifié' });
+        }
+        const isInLibrary = await sequelize.models.Library.findOne({
+            where: {
+                UserId: userId,
+                GameId: gameId
+            }
+        });
+        res.status(200).json(!!isInLibrary);
+    }
+    catch (error) {
+        console.error('Erreur lors de la vérification du jeu dans la bibliothèque:', error);
+        res.status(500).json({ error: 'Erreur lors de la vérification du jeu dans la bibliothèque' });
     }
 });
