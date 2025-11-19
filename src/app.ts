@@ -1,17 +1,8 @@
 import cors from "cors";
 import express from "express";
-import { Game, GameRoute } from "./Models/Game.js";
-import { User, UserRoute } from './Models/User.js';
-import { Controller, ControllerRoute } from './Models/Controller.js';
-import { Tag, TagRoute } from './Models/Tag.js';
-import { Status, StatusRoute } from './Models/Status.js';
-import { Platform, PlatformRoute } from './Models/Platform.js';
-import { Genre, GenreRoute } from './Models/Genre.js';
-import { DataRoute } from './Data.js';
-import { Language, LanguageRoute } from './Models/Language.js';
-import { Role, RoleRoute } from "./Models/Role.js";
-import { initializeAll } from "./initialization/script.js";
-import { initializeAssociations } from "./Models/associations.js";
+import { userRoutes } from './routes/user.routes.js';
+import { gameRoutes } from './routes/game.routes.js';
+import { categoryRoutes } from './routes/category.routes.js';
 
 const app = express();
 app.use(express.json());
@@ -31,26 +22,22 @@ app.use(cors({
 }));
 
 // API Routes
-app.use('/game', GameRoute);
-app.use('/genres', GenreRoute);
-app.use('/tags', TagRoute);
-app.use('/data', DataRoute);
-app.use('/statuses', StatusRoute);
-app.use('/platforms', PlatformRoute);
-app.use('/controllers', ControllerRoute);
-app.use('/languages', LanguageRoute);
-app.use('/user', UserRoute);
-app.use('/role', RoleRoute);
+app.use('/user', userRoutes);
+app.use('/game', gameRoutes);
+// Routes de catégories (montées à la racine car elles ont leurs propres préfixes)
+app.use('/', categoryRoutes);
 
 // Initialize database and start server
-Promise.all([
-    initializeAll(),
-    initializeAssociations()
-]).then(() => {
-    app.listen(9090, () => {
-        console.log("Server running on port 9090");
-    });
-}).catch(error => {
-    console.error("Error during initialization:", error);
-    process.exit(1);
+app.listen(9090, () => {
+    console.log("✅ Server running on port 9090");
+    console.log("✅ Routes Drizzle activées");
+    console.log("✅ Route générique /data/:tableName disponible");
+    console.log("✅ Routes disponibles:");
+    console.log("   - GET /data/:tableName (controllers, platforms, statuses, languages, genres, tags, roles)");
+    console.log("   - GET /controller/all");
+    console.log("   - GET /platform/all");
+    console.log("   - GET /status/all");
+    console.log("   - GET /language/all");
+    console.log("   - GET /genre/all");
+    console.log("   - GET /tag/all");
 });

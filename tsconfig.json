@@ -2,10 +2,11 @@
   "compilerOptions": {
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "target": "ES2022",
     "rootDir": "./src",
     "outDir": "./build",
     "strict": true,
-
+    "skipLibCheck": true
   },
   "include": ["./src"]
 }

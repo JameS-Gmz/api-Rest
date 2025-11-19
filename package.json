@@ -9,9 +9,13 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "concurrently \"tsc -w\" \"nodemon build/app.js\"",
-    "dev": "ts-node src/app.ts",
+    "dev": "npm run init-data && tsx src/app.ts",
     "watch": "tsc -w",
-    "clean": "tsc --build --clean"
+    "clean": "tsc --build --clean",
+    "init": "node run-init.js",
+    "test-upload": "node test-upload.js",
+    "check-relations": "tsx src/scripts/check-relations.ts",
+    "init-data": "tsx src/scripts/init-data.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -21,6 +25,7 @@
     "@types/node": "^20.14.8",
     "concurrently": "^9.1.2",
     "nodemon": "^3.1.9",
+    "tsx": "^4.20.6",
     "typescript": "^5.2.2"
   },
   "dependencies": {
@@ -28,12 +33,13 @@
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "drizzle-kit": "^0.31.7",
+    "drizzle-orm": "^0.44.7",
     "express": "^4.19.2",
     "form-data": "^4.0.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
-    "mysql2": "^3.9.6",
-    "node-fetch": "^3.3.2",
-    "sequelize": "^6.37.3"
+    "mysql2": "^3.15.3",
+    "node-fetch": "^3.3.2"
   }
 }

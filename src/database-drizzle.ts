@@ -1,0 +1,169 @@
+import { drizzle } from 'drizzle-orm/mysql2';
+import mysql from 'mysql2/promise';
+import * as schema from './Models/schema.js';
+
+const DB_CONFIG = {
+    host: 'localhost',
+    user: 'playAdmin',
+    password: 'playAdmin',
+    database: 'PlayForge',
+};
+
+/**
+ * Créer la base de données si elle n'existe pas
+ */
+async function ensureDatabaseExists() {
+    // Se connecter sans spécifier de base de données
+    const adminConnection = await mysql.createConnection({
+        host: DB_CONFIG.host,
+        user: DB_CONFIG.user,
+        password: DB_CONFIG.password,
+    });
+
+    try {
+        // Vérifier si la base de données existe
+        const [databases] = await adminConnection.execute<mysql.RowDataPacket[]>(
+            `SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?`,
+            [DB_CONFIG.database]
+        );
+
+        if (databases.length === 0) {
+            // Créer la base de données
+            await adminConnection.execute(`CREATE DATABASE IF NOT EXISTS \`${DB_CONFIG.database}\``);
+            console.log(`✅ Base de données '${DB_CONFIG.database}' créée avec succès`);
+        } else {
+            console.log(`✅ Base de données '${DB_CONFIG.database}' existe déjà`);
+        }
+    } catch (error) {
+        console.error('❌ Erreur lors de la vérification/création de la base de données:', error);
+        throw error;
+    } finally {
+        await adminConnection.end();
+    }
+}
+
+/**
+ * Appliquer les migrations SQL pour créer les tables
+ */
+async function applyMigrations() {
+    const dbConnection = await mysql.createConnection({
+        host: DB_CONFIG.host,
+        user: DB_CONFIG.user,
+        password: DB_CONFIG.password,
+        database: DB_CONFIG.database,
+        multipleStatements: true,
+    });
+
+    try {
+        // Lire le fichier de migration
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const migrationPath = path.join(process.cwd(), 'drizzle', '0000_closed_phantom_reporter.sql');
+        
+        try {
+            const migrationSQL = await fs.readFile(migrationPath, 'utf-8');
+            
+            // Séparer les statements par '--> statement-breakpoint'
+            const parts = migrationSQL.split('--> statement-breakpoint');
+            const statements: string[] = [];
+            
+            for (const part of parts) {
+                let statement = part.trim();
+                if (!statement) continue;
+                
+                // Nettoyer les commentaires (lignes qui commencent par --)
+                statement = statement
+                    .split('\n')
+                    .filter(line => {
+                        const trimmed = line.trim();
+                        // Garder les lignes non-vides qui ne sont pas des commentaires purs
+                        return trimmed && !trimmed.startsWith('--');
+                    })
+                    .join('\n')
+                    .trim();
+                
+                if (statement && statement.toUpperCase().includes('CREATE TABLE')) {
+                    statements.push(statement);
+                }
+            }
+
+            // Exécuter chaque statement
+            let tablesCreated = 0;
+            for (const statement of statements) {
+                try {
+                    await dbConnection.execute(statement);
+                    const tableName = statement.match(/CREATE TABLE `?(\w+)`?/i)?.[1];
+                    if (tableName) {
+                        tablesCreated++;
+                        console.log(`  ✅ Table '${tableName}' créée`);
+                    }
+                } catch (error: any) {
+                    // Ignorer les erreurs "table already exists" ou "duplicate key"
+                    if (error.code === 'ER_TABLE_EXISTS_ERROR' || 
+                        error.code === 'ER_DUP_KEYNAME' ||
+                        error.message?.includes('already exists') ||
+                        error.message?.includes('Duplicate key name')) {
+                        // Table existe déjà, c'est OK
+                        const tableName = statement.match(/CREATE TABLE `?(\w+)`?/i)?.[1];
+                        if (tableName) {
+                            console.log(`  ℹ️  Table '${tableName}' existe déjà`);
+                        }
+                    } else {
+                        console.warn(`⚠️  Erreur lors de la création d'une table:`, error.message || error);
+                    }
+                }
+            }
+            
+            if (tablesCreated > 0) {
+                console.log(`✅ ${tablesCreated} table(s) créée(s) avec succès`);
+            } else {
+                console.log('✅ Toutes les tables existent déjà');
+            }
+        } catch (fileError: any) {
+            if (fileError.code === 'ENOENT') {
+                console.log('⚠️  Fichier de migration non trouvé, utilisation de drizzle-kit push...');
+                // Si le fichier n'existe pas, on laisse drizzle-kit push s'en charger
+            } else {
+                throw fileError;
+            }
+        }
+    } catch (error) {
+        console.error('❌ Erreur lors de l\'application des migrations:', error);
+        // Ne pas bloquer le démarrage, les tables peuvent être créées manuellement
+    } finally {
+        await dbConnection.end();
+    }
+}
+
+// Créer la base de données si nécessaire
+await ensureDatabaseExists();
+
+// Appliquer les migrations pour créer les tables
+await applyMigrations();
+
+// Configuration de connexion avec la base de données
+const connection = mysql.createPool({
+    host: DB_CONFIG.host,
+    user: DB_CONFIG.user,
+    password: DB_CONFIG.password,
+    database: DB_CONFIG.database,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+});
+
+// Créer l'instance Drizzle avec le schéma
+export const db = drizzle(connection, { schema, mode: 'default' });
+
+// Test de connexion
+connection.getConnection()
+    .then((conn) => {
+        console.log(`✅ Connecté à la BDD avec Drizzle ORM : ${DB_CONFIG.database}`);
+        conn.release();
+    })
+    .catch((error: Error) => {
+        console.error('❌ Erreur de connexion à la BDD:', error);
+    });
+
+export { connection };
+
