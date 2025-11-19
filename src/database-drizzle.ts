@@ -127,6 +127,67 @@ async function applyMigrations() {
                 throw fileError;
             }
         }
+        
+        // Appliquer la migration pour ajouter le champ rating à Comment (toujours, même si les tables existent)
+        try {
+            const migrationPath2 = path.join(process.cwd(), 'drizzle', '0001_add_rating_to_comment.sql');
+            console.log('📋 Tentative d\'application de la migration 0001...');
+            const migrationSQL2 = await fs.readFile(migrationPath2, 'utf-8');
+            
+            // Nettoyer le SQL : retirer les commentaires et les lignes vides
+            const cleanedSQL = migrationSQL2
+                .split('\n')
+                .filter(line => {
+                    const trimmed = line.trim();
+                    return trimmed && !trimmed.startsWith('--');
+                })
+                .join(' ')
+                .trim();
+            
+            // Extraire les statements SQL (séparés par ;)
+            const statements2 = cleanedSQL.split(';')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+            
+            for (const statement of statements2) {
+                if (statement) {
+                    try {
+                        console.log(`  🔄 Exécution: ${statement.substring(0, 50)}...`);
+                        await dbConnection.execute(statement);
+                        console.log('  ✅ Migration 0001 appliquée: champ rating ajouté à Comment');
+                    } catch (error: any) {
+                        // Ignorer les erreurs "duplicate column" ou "column already exists"
+                        if (error.code === 'ER_DUP_FIELDNAME' || 
+                            error.code === 1060 ||
+                            error.message?.includes('Duplicate column name') ||
+                            error.message?.includes('already exists') ||
+                            error.sqlMessage?.includes('Duplicate column name')) {
+                            console.log('  ℹ️  Champ rating existe déjà dans Comment');
+                        } else {
+                            console.error(`  ❌ Erreur lors de l'application de la migration 0001:`, error.message || error);
+                            console.error(`  Code d'erreur: ${error.code}, SQL: ${error.sql || statement}`);
+                        }
+                    }
+                }
+            }
+        } catch (fileError2: any) {
+            if (fileError2.code === 'ENOENT') {
+                console.warn('  ⚠️  Fichier de migration 0001 non trouvé, tentative d\'ajout direct de la colonne...');
+                // Essayer d'ajouter la colonne directement
+                try {
+                    await dbConnection.execute('ALTER TABLE `Comment` ADD COLUMN `rating` int NULL AFTER `content`');
+                    console.log('  ✅ Colonne rating ajoutée directement à Comment');
+                } catch (directError: any) {
+                    if (directError.code === 'ER_DUP_FIELDNAME' || directError.code === 1060) {
+                        console.log('  ℹ️  Colonne rating existe déjà dans Comment');
+                    } else {
+                        console.error('  ❌ Erreur lors de l\'ajout direct de la colonne:', directError.message);
+                    }
+                }
+            } else {
+                console.error('  ❌ Erreur lors de la lecture de la migration 0001:', fileError2.message);
+            }
+        }
     } catch (error) {
         console.error('❌ Erreur lors de l\'application des migrations:', error);
         // Ne pas bloquer le démarrage, les tables peuvent être créées manuellement

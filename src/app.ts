@@ -3,6 +3,7 @@ import express from "express";
 import { userRoutes } from './routes/user.routes.js';
 import { gameRoutes } from './routes/game.routes.js';
 import { categoryRoutes } from './routes/category.routes.js';
+import { commentRoutes } from './routes/comment.routes.js';
 
 const app = express();
 app.use(express.json());
@@ -24,6 +25,7 @@ app.use(cors({
 // API Routes
 app.use('/user', userRoutes);
 app.use('/game', gameRoutes);
+app.use('/comment', commentRoutes);
 // Routes de catégories (montées à la racine car elles ont leurs propres préfixes)
 app.use('/', categoryRoutes);
 
@@ -40,4 +42,10 @@ app.listen(9090, () => {
     console.log("   - GET /language/all");
     console.log("   - GET /genre/all");
     console.log("   - GET /tag/all");
+    console.log("✅ Routes de commentaires:");
+    console.log("   - GET /comment/game/:gameId");
+    console.log("   - POST /comment/create");
+    console.log("   - PUT /comment/update/:commentId");
+    console.log("   - DELETE /comment/delete/:commentId");
+    console.log("   - GET /comment/user/:userId");
 });

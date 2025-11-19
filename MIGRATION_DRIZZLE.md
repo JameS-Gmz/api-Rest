@@ -116,3 +116,22 @@ npx drizzle-kit generate
 npx drizzle-kit introspect
 ```
 
+1. user1 (Utilisateur standard)
+Email : user1@playforge.com
+Mot de passe : user123
+Rôle : user
+
+2. dev1 (Développeur)
+Email : dev1@playforge.com
+Mot de passe : dev123
+Rôle : developer
+
+3. admin (Administrateur)
+Email : admin@playforge.com
+Mot de passe : admin123
+Rôle : admin
+
+4. superadmin (Super administrateur)
+Email : superadmin@playforge.com
+Mot de passe : super123
+Rôle : superadmin

@@ -178,6 +178,7 @@ export const comments = mysqlTable('Comment', {
     UserId: int('UserId').notNull(),
     GameId: int('GameId').notNull(),
     content: text('content'),
+    rating: int('rating'), // Note de 1 à 5
     createdAt: timestamp('createdAt').defaultNow(),
     updatedAt: timestamp('updatedAt').defaultNow().onUpdateNow(),
 }, (table) => ({
