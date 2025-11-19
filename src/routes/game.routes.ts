@@ -18,6 +18,16 @@ gameRoutes.post('/new', authorizeRole(['developer', 'admin']), async (req: Reque
             controllerIds, platformIds, genreIds, tagIds
         } = req.body;
 
+        console.log('📥 [POST /game/new] Données reçues:', {
+            title,
+            madewith,
+            authorStudio,
+            controllerIds,
+            platformIds,
+            genreIds,
+            tagIds
+        });
+
         // Créer le jeu
         await db.insert(games).values({
             title,
@@ -29,6 +39,8 @@ gameRoutes.post('/new', authorizeRole(['developer', 'admin']), async (req: Reque
             LanguageId,
             UserId,
         });
+
+        console.log('✅ [POST /game/new] Jeu créé avec madewith:', madewith);
 
         // Récupérer le jeu créé (par titre car il est unique dans ce contexte)
         const [createdGame] = await db.select()
@@ -419,6 +431,13 @@ async function getGameWithRelations(gameId: number) {
     const [game] = await db.select().from(games).where(eq(games.id, gameId)).limit(1);
     
     if (!game) return null;
+
+    console.log('🔍 [getGameWithRelations] Jeu récupéré:', {
+        id: game.id,
+        title: game.title,
+        madewith: game.madewith,
+        allKeys: Object.keys(game)
+    });
 
     const [gameStatus, gameLanguage, gameOwner] = await Promise.all([
         game.StatusId ? db.select().from(statuses).where(eq(statuses.id, game.StatusId)).limit(1) : Promise.resolve([]),
