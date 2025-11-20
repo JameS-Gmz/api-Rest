@@ -3,6 +3,7 @@ import express from "express";
 import { userRoutes } from './routes/user.routes.js';
 import { gameRoutes } from './routes/game.routes.js';
 import { categoryRoutes } from './routes/category.routes.js';
+import { commentRoutes } from './routes/comment.routes.js';
 const app = express();
 app.use(express.json());
 // CORS configuration
@@ -20,10 +21,26 @@ app.use(cors({
 // API Routes
 app.use('/user', userRoutes);
 app.use('/game', gameRoutes);
+app.use('/comment', commentRoutes);
 // Routes de catégories (montées à la racine car elles ont leurs propres préfixes)
 app.use('/', categoryRoutes);
 // Initialize database and start server
 app.listen(9090, () => {
     console.log("✅ Server running on port 9090");
     console.log("✅ Routes Drizzle activées");
+    console.log("✅ Route générique /data/:tableName disponible");
+    console.log("✅ Routes disponibles:");
+    console.log("   - GET /data/:tableName (controllers, platforms, statuses, languages, genres, tags, roles)");
+    console.log("   - GET /controller/all");
+    console.log("   - GET /platform/all");
+    console.log("   - GET /status/all");
+    console.log("   - GET /language/all");
+    console.log("   - GET /genre/all");
+    console.log("   - GET /tag/all");
+    console.log("✅ Routes de commentaires:");
+    console.log("   - GET /comment/game/:gameId");
+    console.log("   - POST /comment/create");
+    console.log("   - PUT /comment/update/:commentId");
+    console.log("   - DELETE /comment/delete/:commentId");
+    console.log("   - GET /comment/user/:userId");
 });

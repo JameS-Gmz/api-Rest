@@ -369,3 +369,35 @@ userRoutes.get('/library/games/:gameId/check', verifyToken, async (req, res) => 
         res.status(500).json({ error: 'Erreur lors de la vérification du jeu dans la bibliothèque' });
     }
 });
+// GET /current-developer-id - Récupérer l'ID du développeur actuellement connecté
+userRoutes.get('/current-developer-id', verifyToken, async (req, res) => {
+    try {
+        const userId = req.user?.id ? parseInt(req.user.id) : null;
+        if (!userId) {
+            return res.status(401).json({ error: 'Utilisateur non authentifié' });
+        }
+        // Vérifier que l'utilisateur a le rôle de développeur
+        const userWithRole = await db.select({
+            user: users,
+            role: roles,
+        })
+            .from(users)
+            .leftJoin(roles, eq(users.RoleId, roles.id))
+            .where(eq(users.id, userId))
+            .limit(1);
+        if (userWithRole.length === 0) {
+            return res.status(404).json({ error: 'Utilisateur non trouvé' });
+        }
+        const role = userWithRole[0].role;
+        const roleName = role?.name || 'user';
+        // Vérifier si l'utilisateur est un développeur
+        if (roleName !== 'developer' && roleName !== 'admin' && roleName !== 'superadmin') {
+            return res.status(403).json({ error: 'Accès refusé. Seuls les développeurs peuvent accéder à cette ressource.' });
+        }
+        res.status(200).json({ developerId: userId });
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération de l\'ID du développeur:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération de l\'ID du développeur' });
+    }
+});

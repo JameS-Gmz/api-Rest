@@ -16,31 +16,50 @@ export const ROLES = {
 export const authorizeRole = (allowedRoles) => {
     return (req, res, next) => {
         const authHeader = req.headers.authorization;
-        // Si pas de token, l'utilisateur est considéré comme un invité
-        if (!authHeader) {
-            req.user = { id: '', role: 'guest' };
-            return next();
+        // Si pas de token, accès refusé pour les routes protégées
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                message: 'Token d\'authentification manquant'
+            });
         }
         const token = authHeader.split(' ')[1];
         if (!token) {
-            req.user = { id: '', role: 'guest' };
-            return next();
+            return res.status(401).json({
+                message: 'Format de token invalide'
+            });
         }
         try {
             const decoded = jwt.verify(token, secretKey);
-            req.user = decoded;
+            // Extraire l'ID utilisateur (peut être userId ou id)
+            const userId = decoded.userId || decoded.id || '';
+            const userRole = decoded.role;
+            // Log pour débogage
+            console.log(`🔐 [authorizeRole] Utilisateur: ${userId}, Rôle: ${userRole}, Routes autorisées: ${allowedRoles.join(', ')}`);
+            // Définir req.user avec les bonnes propriétés
+            req.user = {
+                id: userId.toString(),
+                role: userRole
+            };
+            // Le superadmin a accès à toutes les routes
+            if (userRole === 'superadmin') {
+                console.log(`✅ [authorizeRole] Superadmin détecté - accès accordé à toutes les routes`);
+                return next();
+            }
             // Vérification du rôle uniquement si l'utilisateur est authentifié
-            if (decoded.role && !allowedRoles.includes(decoded.role)) {
+            if (userRole && !allowedRoles.includes(userRole)) {
+                console.log(`❌ [authorizeRole] Accès refusé: rôle '${userRole}' non autorisé`);
                 return res.status(403).json({
-                    message: `Accès interdit, rôle '${decoded.role}' insuffisant. Rôle requis: ${allowedRoles.join(', ')}`
+                    message: `Accès interdit, rôle '${userRole}' insuffisant. Rôle requis: ${allowedRoles.join(', ')}`
                 });
             }
+            console.log(`✅ [authorizeRole] Accès accordé pour le rôle: ${userRole}`);
             next();
         }
         catch (error) {
-            // En cas d'erreur de token, l'utilisateur est considéré comme un invité
-            req.user = { id: '', role: 'guest' };
-            next();
+            console.error('Erreur de vérification du token:', error);
+            return res.status(401).json({
+                message: 'Token invalide ou expiré'
+            });
         }
     };
 };

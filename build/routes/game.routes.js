@@ -8,6 +8,15 @@ export const gameRoutes = Router();
 gameRoutes.post('/new', authorizeRole(['developer', 'admin']), async (req, res) => {
     try {
         const { title, description, price, authorStudio, madewith, StatusId, LanguageId, UserId, controllerIds, platformIds, genreIds, tagIds } = req.body;
+        console.log('📥 [POST /game/new] Données reçues:', {
+            title,
+            madewith,
+            authorStudio,
+            controllerIds,
+            platformIds,
+            genreIds,
+            tagIds
+        });
         // Créer le jeu
         await db.insert(games).values({
             title,
@@ -19,6 +28,7 @@ gameRoutes.post('/new', authorizeRole(['developer', 'admin']), async (req, res) 
             LanguageId,
             UserId,
         });
+        console.log('✅ [POST /game/new] Jeu créé avec madewith:', madewith);
         // Récupérer le jeu créé (par titre car il est unique dans ce contexte)
         const [createdGame] = await db.select()
             .from(games)
@@ -261,6 +271,20 @@ gameRoutes.get('/by-user/:userId', authorizeRole(['developer']), async (req, res
         res.status(500).json({ error: 'Erreur lors de la récupération des jeux' });
     }
 });
+// GET /last-updated - Récupérer les jeux triés par date de mise à jour
+gameRoutes.get('/last-updated', async (req, res) => {
+    try {
+        const gamesUpdated = await db.select()
+            .from(games)
+            .orderBy(desc(games.updatedAt));
+        const gamesWithRelations = await Promise.all(gamesUpdated.map(game => getGameWithRelations(game.id)));
+        res.status(200).json(gamesWithRelations);
+    }
+    catch (error) {
+        console.error('Erreur lors de la récupération des jeux par date de mise à jour:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des jeux' });
+    }
+});
 // GET /check-relations - Vérifier l'état des relations (pour debug)
 gameRoutes.get('/check-relations', async (req, res) => {
     try {
@@ -314,6 +338,12 @@ async function getGameWithRelations(gameId) {
     const [game] = await db.select().from(games).where(eq(games.id, gameId)).limit(1);
     if (!game)
         return null;
+    console.log('🔍 [getGameWithRelations] Jeu récupéré:', {
+        id: game.id,
+        title: game.title,
+        madewith: game.madewith,
+        allKeys: Object.keys(game)
+    });
     const [gameStatus, gameLanguage, gameOwner] = await Promise.all([
         game.StatusId ? db.select().from(statuses).where(eq(statuses.id, game.StatusId)).limit(1) : Promise.resolve([]),
         game.LanguageId ? db.select().from(languages).where(eq(languages.id, game.LanguageId)).limit(1) : Promise.resolve([]),

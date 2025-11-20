@@ -4,6 +4,57 @@ import { roles, statuses, languages, controllers, platforms, genres, tags, games
 import { eq } from 'drizzle-orm';
 export const categoryRoutes = Router();
 // ============================================
+// ROUTE GÉNÉRIQUE POUR RÉCUPÉRER LES DONNÉES D'UNE TABLE
+// ============================================
+// GET /data/:tableName - Récupérer toutes les données d'une table (route générique)
+categoryRoutes.get('/data/:tableName', async (req, res) => {
+    const tableName = req.params.tableName;
+    console.log(`📡 Requête reçue pour /data/${tableName}`);
+    try {
+        let data = [];
+        // Mapper le nom de la table au bon endpoint
+        switch (tableName.toLowerCase()) {
+            case 'controllers':
+                console.log(`  → Récupération des contrôleurs...`);
+                data = await db.select().from(controllers);
+                break;
+            case 'platforms':
+                console.log(`  → Récupération des plateformes...`);
+                data = await db.select().from(platforms);
+                break;
+            case 'statuses':
+                console.log(`  → Récupération des statuts...`);
+                data = await db.select().from(statuses);
+                break;
+            case 'languages':
+                console.log(`  → Récupération des langues...`);
+                data = await db.select().from(languages);
+                break;
+            case 'genres':
+                console.log(`  → Récupération des genres...`);
+                data = await db.select().from(genres);
+                break;
+            case 'tags':
+                console.log(`  → Récupération des tags...`);
+                data = await db.select().from(tags);
+                break;
+            case 'roles':
+                console.log(`  → Récupération des rôles...`);
+                data = await db.select().from(roles);
+                break;
+            default:
+                console.log(`  ❌ Table '${tableName}' non reconnue`);
+                return res.status(404).json({ error: `Table '${tableName}' non trouvée` });
+        }
+        console.log(`  ✅ ${data.length} élément(s) trouvé(s) pour ${tableName}`);
+        res.status(200).json(data);
+    }
+    catch (error) {
+        console.error(`❌ Erreur lors de la récupération des données de la table ${tableName}:`, error);
+        res.status(500).json({ error: `Erreur lors de la récupération des données de la table ${tableName}` });
+    }
+});
+// ============================================
 // ROLES
 // ============================================
 // GET /role/all - Récupérer tous les rôles
