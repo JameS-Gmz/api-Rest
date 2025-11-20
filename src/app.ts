@@ -17,7 +17,7 @@ app.use((req, res, next) => {
 });
 
 app.use(cors({
-    origin: 'http://localhost:4200',
+    origin: 'https://ng-playforge.vercel.app',
   methods: ['POST', 'GET', 'PUT', 'DELETE'],
   credentials: true
 }));
