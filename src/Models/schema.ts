@@ -1,4 +1,4 @@
-import { mysqlTable, int, varchar, text, double, datetime, timestamp, primaryKey, index } from 'drizzle-orm/mysql-core';
+import { pgTable, integer, varchar, text, real, timestamp, primaryKey, index, serial } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // ============================================
@@ -6,8 +6,8 @@ import { relations } from 'drizzle-orm';
 // ============================================
 
 // Table: Roles
-export const roles = mysqlTable('Roles', {
-    id: int('id').primaryKey().autoincrement(),
+export const roles = pgTable('Roles', {
+    id: serial('id').primaryKey(),
     name: varchar('name', { length: 100 }).notNull().default('Default Role Name'),
     description: varchar('description', { length: 255 }),
 }, (table) => ({
@@ -15,25 +15,25 @@ export const roles = mysqlTable('Roles', {
 }));
 
 // Table: Users
-export const users = mysqlTable('Users', {
-    id: int('id').primaryKey().autoincrement(),
+export const users = pgTable('Users', {
+    id: serial('id').primaryKey(),
     username: varchar('username', { length: 50 }).notNull(),
     email: varchar('email', { length: 50 }).notNull(),
     password: varchar('password', { length: 255 }).notNull(),
     bio: varchar('bio', { length: 100 }),
     avatar: varchar('avatar', { length: 255 }),
-    birthday: datetime('birthday'),
-    RoleId: int('RoleId'),
+    birthday: timestamp('birthday'),
+    RoleId: integer('RoleId'),
     createdAt: timestamp('createdAt').defaultNow(),
-    updatedAt: timestamp('updatedAt').defaultNow().onUpdateNow(),
+    updatedAt: timestamp('updatedAt').defaultNow(),
 }, (table) => ({
     emailIdx: index('email_idx').on(table.email),
     roleIdIdx: index('RoleId_idx').on(table.RoleId),
 }));
 
 // Table: Statuses
-export const statuses = mysqlTable('Statuses', {
-    id: int('id').primaryKey().autoincrement(),
+export const statuses = pgTable('Statuses', {
+    id: serial('id').primaryKey(),
     name: varchar('name', { length: 100 }),
     description: varchar('description', { length: 500 }),
 }, (table) => ({
@@ -41,8 +41,8 @@ export const statuses = mysqlTable('Statuses', {
 }));
 
 // Table: Languages
-export const languages = mysqlTable('Languages', {
-    id: int('id').primaryKey().autoincrement(),
+export const languages = pgTable('Languages', {
+    id: serial('id').primaryKey(),
     name: varchar('name', { length: 100 }),
     description: varchar('description', { length: 500 }),
 }, (table) => ({
@@ -50,8 +50,8 @@ export const languages = mysqlTable('Languages', {
 }));
 
 // Table: Controllers
-export const controllers = mysqlTable('Controllers', {
-    id: int('id').primaryKey().autoincrement(),
+export const controllers = pgTable('Controllers', {
+    id: serial('id').primaryKey(),
     name: varchar('name', { length: 100 }).notNull(),
     description: text('description'),
 }, (table) => ({
@@ -59,8 +59,8 @@ export const controllers = mysqlTable('Controllers', {
 }));
 
 // Table: Platforms
-export const platforms = mysqlTable('Platforms', {
-    id: int('id').primaryKey().autoincrement(),
+export const platforms = pgTable('Platforms', {
+    id: serial('id').primaryKey(),
     name: varchar('name', { length: 100 }),
     description: varchar('description', { length: 500 }),
 }, (table) => ({
@@ -68,8 +68,8 @@ export const platforms = mysqlTable('Platforms', {
 }));
 
 // Table: Genres
-export const genres = mysqlTable('Genres', {
-    id: int('id').primaryKey().autoincrement(),
+export const genres = pgTable('Genres', {
+    id: serial('id').primaryKey(),
     name: varchar('name', { length: 255 }).notNull(),
     description: varchar('description', { length: 50 }).notNull(),
 }, (table) => ({
@@ -77,8 +77,8 @@ export const genres = mysqlTable('Genres', {
 }));
 
 // Table: Tags
-export const tags = mysqlTable('Tags', {
-    id: int('id').primaryKey().autoincrement(),
+export const tags = pgTable('Tags', {
+    id: serial('id').primaryKey(),
     name: varchar('name', { length: 100 }),
     description: varchar('description', { length: 600 }),
 }, (table) => ({
@@ -86,18 +86,18 @@ export const tags = mysqlTable('Tags', {
 }));
 
 // Table: Games
-export const games = mysqlTable('Games', {
-    id: int('id').primaryKey().autoincrement(),
+export const games = pgTable('Games', {
+    id: serial('id').primaryKey(),
     title: varchar('title', { length: 100 }).notNull(),
-    price: double('price').notNull().default(0),
+    price: real('price').notNull().default(0),
     authorStudio: varchar('authorStudio', { length: 255 }),
     madewith: varchar('madewith', { length: 255 }),
     description: varchar('description', { length: 1500 }),
-    StatusId: int('StatusId'),
-    LanguageId: int('LanguageId'),
-    UserId: int('UserId'),
+    StatusId: integer('StatusId'),
+    LanguageId: integer('LanguageId'),
+    UserId: integer('UserId'),
     createdAt: timestamp('createdAt').defaultNow(),
-    updatedAt: timestamp('updatedAt').defaultNow().onUpdateNow(),
+    updatedAt: timestamp('updatedAt').defaultNow(),
 }, (table) => ({
     titleIdx: index('title_idx').on(table.title),
     statusIdIdx: index('StatusId_idx').on(table.StatusId),
@@ -107,12 +107,12 @@ export const games = mysqlTable('Games', {
 }));
 
 // Table: Carts
-export const carts = mysqlTable('Carts', {
-    id: int('id').primaryKey().autoincrement(),
-    quantity: int('quantity'),
-    UserId: int('UserId'),
+export const carts = pgTable('Carts', {
+    id: serial('id').primaryKey(),
+    quantity: integer('quantity'),
+    UserId: integer('UserId'),
     createdAt: timestamp('createdAt').defaultNow(),
-    updatedAt: timestamp('updatedAt').defaultNow().onUpdateNow(),
+    updatedAt: timestamp('updatedAt').defaultNow(),
 }, (table) => ({
     userIdIdx: index('UserId_idx').on(table.UserId),
 }));
@@ -122,9 +122,9 @@ export const carts = mysqlTable('Carts', {
 // ============================================
 
 // Table: GameControllers
-export const gameControllers = mysqlTable('GameControllers', {
-    GameId: int('GameId').notNull(),
-    ControllerId: int('ControllerId').notNull(),
+export const gameControllers = pgTable('GameControllers', {
+    GameId: integer('GameId').notNull(),
+    ControllerId: integer('ControllerId').notNull(),
 }, (table) => ({
     pk: primaryKey({ columns: [table.GameId, table.ControllerId] }),
     gameIdIdx: index('GameId_idx').on(table.GameId),
@@ -132,9 +132,9 @@ export const gameControllers = mysqlTable('GameControllers', {
 }));
 
 // Table: GamePlatforms
-export const gamePlatforms = mysqlTable('GamePlatforms', {
-    GameId: int('GameId').notNull(),
-    PlatformId: int('PlatformId').notNull(),
+export const gamePlatforms = pgTable('GamePlatforms', {
+    GameId: integer('GameId').notNull(),
+    PlatformId: integer('PlatformId').notNull(),
 }, (table) => ({
     pk: primaryKey({ columns: [table.GameId, table.PlatformId] }),
     gameIdIdx: index('GameId_idx').on(table.GameId),
@@ -142,9 +142,9 @@ export const gamePlatforms = mysqlTable('GamePlatforms', {
 }));
 
 // Table: GameGenres
-export const gameGenres = mysqlTable('GameGenres', {
-    GameId: int('GameId').notNull(),
-    GenreId: int('GenreId').notNull(),
+export const gameGenres = pgTable('GameGenres', {
+    GameId: integer('GameId').notNull(),
+    GenreId: integer('GenreId').notNull(),
 }, (table) => ({
     pk: primaryKey({ columns: [table.GameId, table.GenreId] }),
     gameIdIdx: index('GameId_idx').on(table.GameId),
@@ -152,9 +152,9 @@ export const gameGenres = mysqlTable('GameGenres', {
 }));
 
 // Table: GameTags
-export const gameTags = mysqlTable('GameTags', {
-    GameId: int('GameId').notNull(),
-    TagId: int('TagId').notNull(),
+export const gameTags = pgTable('GameTags', {
+    GameId: integer('GameId').notNull(),
+    TagId: integer('TagId').notNull(),
 }, (table) => ({
     pk: primaryKey({ columns: [table.GameId, table.TagId] }),
     gameIdIdx: index('GameId_idx').on(table.GameId),
@@ -162,9 +162,9 @@ export const gameTags = mysqlTable('GameTags', {
 }));
 
 // Table: Library (User-Game)
-export const library = mysqlTable('Library', {
-    UserId: int('UserId').notNull(),
-    GameId: int('GameId').notNull(),
+export const library = pgTable('Library', {
+    UserId: integer('UserId').notNull(),
+    GameId: integer('GameId').notNull(),
     addedAt: timestamp('addedAt').defaultNow(),
 }, (table) => ({
     pk: primaryKey({ columns: [table.UserId, table.GameId] }),
@@ -173,24 +173,24 @@ export const library = mysqlTable('Library', {
 }));
 
 // Table: Comment (User-Game)
-export const comments = mysqlTable('Comment', {
-    id: int('id').primaryKey().autoincrement(),
-    UserId: int('UserId').notNull(),
-    GameId: int('GameId').notNull(),
+export const comments = pgTable('Comment', {
+    id: serial('id').primaryKey(),
+    UserId: integer('UserId').notNull(),
+    GameId: integer('GameId').notNull(),
     content: text('content'),
-    rating: int('rating'), // Note de 1 à 5
+    rating: integer('rating'), // Note de 1 à 5
     createdAt: timestamp('createdAt').defaultNow(),
-    updatedAt: timestamp('updatedAt').defaultNow().onUpdateNow(),
+    updatedAt: timestamp('updatedAt').defaultNow(),
 }, (table) => ({
     userIdIdx: index('UserId_idx').on(table.UserId),
     gameIdIdx: index('GameId_idx').on(table.GameId),
 }));
 
 // Table: Upload (User-Game)
-export const uploads = mysqlTable('Upload', {
-    id: int('id').primaryKey().autoincrement(),
-    UserId: int('UserId').notNull(),
-    GameId: int('GameId').notNull(),
+export const uploads = pgTable('Upload', {
+    id: serial('id').primaryKey(),
+    UserId: integer('UserId').notNull(),
+    GameId: integer('GameId').notNull(),
     createdAt: timestamp('createdAt').defaultNow(),
 }, (table) => ({
     userIdIdx: index('UserId_idx').on(table.UserId),
@@ -198,10 +198,10 @@ export const uploads = mysqlTable('Upload', {
 }));
 
 // Table: Order (User-Game)
-export const orders = mysqlTable('Order', {
-    id: int('id').primaryKey().autoincrement(),
-    UserId: int('UserId').notNull(),
-    GameId: int('GameId').notNull(),
+export const orders = pgTable('Order', {
+    id: serial('id').primaryKey(),
+    UserId: integer('UserId').notNull(),
+    GameId: integer('GameId').notNull(),
     createdAt: timestamp('createdAt').defaultNow(),
 }, (table) => ({
     userIdIdx: index('UserId_idx').on(table.UserId),
@@ -209,9 +209,9 @@ export const orders = mysqlTable('Order', {
 }));
 
 // Table: GameCart
-export const gameCart = mysqlTable('GameCart', {
-    CartId: int('CartId').notNull(),
-    GameId: int('GameId').notNull(),
+export const gameCart = pgTable('GameCart', {
+    CartId: integer('CartId').notNull(),
+    GameId: integer('GameId').notNull(),
 }, (table) => ({
     pk: primaryKey({ columns: [table.CartId, table.GameId] }),
     cartIdIdx: index('CartId_idx').on(table.CartId),

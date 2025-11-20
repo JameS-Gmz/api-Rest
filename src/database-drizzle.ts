@@ -242,67 +242,27 @@ const DB_CONFIG = {
 };  
 
 /**
- * Appliquer les migrations SQL
+ * Appliquer les migrations avec drizzle-kit push
+ * Cela crée les tables directement depuis le schéma TypeScript
  */
 async function applyMigrations() {
-    // Créer une connexion temporaire pour les migrations
-    const migrationConnection = postgres({
-        host: DB_CONFIG.host,
-        user: DB_CONFIG.user,
-        password: DB_CONFIG.password,
-        database: DB_CONFIG.database,
-        port: DB_CONFIG.port,
-    });
-
     try {
-        const fs = await import('fs/promises');
-        const path = await import('path');
-
-        // MIGRATION 0000
-        const migrationPath = path.join(process.cwd(), 'drizzle', '0000_closed_phantom_reporter.sql');
-        try {
-            const migrationSQL = await fs.readFile(migrationPath, 'utf-8');
-            const statements = migrationSQL
-                .split('--> statement-breakpoint')
-                .map(s => s.trim())
-                .filter(s => s.includes('CREATE TABLE'));
-
-            for (const statement of statements) {
-                try {
-                    await migrationConnection.unsafe(statement);
-                    console.log("  ✅ Table créée / déjà existante");
-                } catch (e: any) {
-                    if (!e.message?.includes("already exists") && !e.message?.includes("duplicate")) {
-                        console.warn("⚠️ Erreur migration:", e.message);
-                    }
-                }
-            }
-        } catch (e: any) {
-            console.warn("⚠️ Migration 0000 introuvable :", e.message);
+        const { exec } = await import('child_process');
+        const { promisify } = await import('util');
+        const execAsync = promisify(exec);
+        
+        console.log("🔄 Application des migrations avec drizzle-kit push...");
+        const { stdout, stderr } = await execAsync('npx drizzle-kit push');
+        console.log(stdout);
+        if (stderr) console.warn(stderr);
+        console.log("✅ Migrations appliquées avec succès");
+    } catch (error: any) {
+        // Ignorer les erreurs si les tables existent déjà
+        if (error.message?.includes('already exists') || error.stderr?.includes('already exists')) {
+            console.log("ℹ️  Les tables existent déjà");
+        } else {
+            console.warn("⚠️  Erreur lors de l'application des migrations:", error.message);
         }
-
-        // MIGRATION 0001
-        const migrationPath2 = path.join(process.cwd(), 'drizzle', '0001_add_rating_to_comment.sql');
-        try {
-            const migrationText = await fs.readFile(migrationPath2, 'utf-8');
-            const statements = migrationText.split(";").map(s => s.trim()).filter(Boolean);
-
-            for (const st of statements) {
-                try {
-                    await migrationConnection.unsafe(st);
-                    console.log("  ✅ Migration exécutée :", st.substring(0, 40));
-                } catch (e: any) {
-                    if (!e.message?.includes("Duplicate column") && !e.message?.includes("already exists")) {
-                        console.warn("⚠️ Migration 0001 erreur :", e.message);
-                    }
-                }
-            }
-        } catch (e: any) {
-            console.warn("⚠️ Migration 0001 introuvable :", e.message);
-        }
-
-    } finally {
-        await migrationConnection.end();
     }
 }
 
