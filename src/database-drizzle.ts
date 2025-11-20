@@ -228,14 +228,13 @@
 
 // export { connection };
 
-
 import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
 import * as schema from './Models/schema.js';
 
 /** CONFIG : Compatible local + Render */
 const DB_CONFIG = {
-    host: process.env.DB_HOST!,  
+    host: process.env.DB_HOST!,
     user: process.env.DB_USER!,
     password: process.env.DB_PASSWORD!,
     database: process.env.DB_NAME!,
@@ -243,13 +242,7 @@ const DB_CONFIG = {
 };
 
 /**
- * ❌ Removed ensureDatabaseExists() (Render interdit CREATE DATABASE)
- * Tu dois créer la base toi-même sur Render ou sur ton VPS.
- */
-
-
-/**
- * Migrations : OK sur Render tant que les fichiers sont dans le repo
+ * Appliquer les migrations SQL
  */
 async function applyMigrations() {
     const dbConnection = await mysql.createConnection({
@@ -267,7 +260,6 @@ async function applyMigrations() {
 
         // MIGRATION 0000
         const migrationPath = path.join(process.cwd(), 'drizzle', '0000_closed_phantom_reporter.sql');
-
         try {
             const migrationSQL = await fs.readFile(migrationPath, 'utf-8');
             const statements = migrationSQL
@@ -280,37 +272,27 @@ async function applyMigrations() {
                     await dbConnection.execute(statement);
                     console.log("  ✅ Table créée / déjà existante");
                 } catch (e: any) {
-                    if (!e.message.includes("exists")) {
-                        console.warn("⚠️ Erreur lors de la migration:", e.message);
-                    }
+                    if (!e.message.includes("exists")) console.warn("⚠️ Erreur migration:", e.message);
                 }
             }
-
         } catch (e: any) {
-            console.warn("⚠️ Fichier migration 0000 introuvable :", e.message);
+            console.warn("⚠️ Migration 0000 introuvable :", e.message);
         }
 
         // MIGRATION 0001
+        const migrationPath2 = path.join(process.cwd(), 'drizzle', '0001_add_rating_to_comment.sql');
         try {
-            const migrationPath2 = path.join(process.cwd(), 'drizzle', '0001_add_rating_to_comment.sql');
             const migrationText = await fs.readFile(migrationPath2, 'utf-8');
-
-            const statements = migrationText
-                .split(";")
-                .map(s => s.trim())
-                .filter(Boolean);
+            const statements = migrationText.split(";").map(s => s.trim()).filter(Boolean);
 
             for (const st of statements) {
                 try {
                     await dbConnection.execute(st);
                     console.log("  ✅ Migration exécutée :", st.substring(0, 40));
                 } catch (e: any) {
-                    if (!e.message.includes("Duplicate column")) {
-                        console.warn("⚠️ Migration 0001 erreur :", e.message);
-                    }
+                    if (!e.message.includes("Duplicate column")) console.warn("⚠️ Migration 0001 erreur :", e.message);
                 }
             }
-
         } catch (e: any) {
             console.warn("⚠️ Migration 0001 introuvable :", e.message);
         }
@@ -320,7 +302,13 @@ async function applyMigrations() {
     }
 }
 
-await applyMigrations();
+// 🔹 Migrations uniquement à l'exécution sur Render
+if (process.env.RENDER === "true") {
+    console.log("🚀 Execution des migrations sur Render (RUN phase)");
+    await applyMigrations();
+} else {
+    console.log("⏭️ Migrations ignorées : environnement non Render");
+}
 
 /** Pool de connexion + Drizzle */
 const connection = mysql.createPool({
@@ -335,13 +323,12 @@ const connection = mysql.createPool({
 
 export const db = drizzle(connection, { schema, mode: 'default' });
 
+// test de connexion
 connection.getConnection()
     .then(conn => {
         console.log(`✅ Connecté à MySQL (${DB_CONFIG.database})`);
         conn.release();
     })
-    .catch(err => {
-        console.error('❌ Erreur de connexion :', err);
-    });
+    .catch(err => console.error('❌ Erreur de connexion :', err));
 
 export { connection };
