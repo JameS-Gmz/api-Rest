@@ -8,8 +8,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "concurrently \"tsc -w\" \"nodemon build/app.js\"",
-    "dev": "npm run init-data && tsx src/app.ts",
+    "dev": "concurrently \"tsc -w\" \"nodemon build/app.js\"",
+    "start": "npm run init-data && tsx src/app.ts",
     "watch": "tsc -w",
     "clean": "tsc --build --clean",
     "init": "node run-init.js",
