@@ -228,8 +228,8 @@
 
 // export { connection };
 
-import { drizzle } from 'drizzle-orm/mysql2';
-import mysql from 'mysql2/promise';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from './Models/schema.js';
 
 /** CONFIG : Compatible local + Render */
@@ -238,20 +238,20 @@ const DB_CONFIG = {
     user: process.env.DB_USER!,
     password: process.env.DB_PASSWORD!,
     database: process.env.DB_NAME!,
-    port: Number(process.env.DB_PORT!) || 3306
-};
+    port: Number(process.env.DB_PORT!) || 5432
+};  
 
 /**
  * Appliquer les migrations SQL
  */
 async function applyMigrations() {
-    const dbConnection = await mysql.createConnection({
+    // Créer une connexion temporaire pour les migrations
+    const migrationConnection = postgres({
         host: DB_CONFIG.host,
         user: DB_CONFIG.user,
         password: DB_CONFIG.password,
         database: DB_CONFIG.database,
         port: DB_CONFIG.port,
-        multipleStatements: true,
     });
 
     try {
@@ -269,10 +269,12 @@ async function applyMigrations() {
 
             for (const statement of statements) {
                 try {
-                    await dbConnection.execute(statement);
+                    await migrationConnection.unsafe(statement);
                     console.log("  ✅ Table créée / déjà existante");
                 } catch (e: any) {
-                    if (!e.message.includes("exists")) console.warn("⚠️ Erreur migration:", e.message);
+                    if (!e.message?.includes("already exists") && !e.message?.includes("duplicate")) {
+                        console.warn("⚠️ Erreur migration:", e.message);
+                    }
                 }
             }
         } catch (e: any) {
@@ -287,10 +289,12 @@ async function applyMigrations() {
 
             for (const st of statements) {
                 try {
-                    await dbConnection.execute(st);
+                    await migrationConnection.unsafe(st);
                     console.log("  ✅ Migration exécutée :", st.substring(0, 40));
                 } catch (e: any) {
-                    if (!e.message.includes("Duplicate column")) console.warn("⚠️ Migration 0001 erreur :", e.message);
+                    if (!e.message?.includes("Duplicate column") && !e.message?.includes("already exists")) {
+                        console.warn("⚠️ Migration 0001 erreur :", e.message);
+                    }
                 }
             }
         } catch (e: any) {
@@ -298,7 +302,7 @@ async function applyMigrations() {
         }
 
     } finally {
-        await dbConnection.end();
+        await migrationConnection.end();
     }
 }
 
@@ -310,24 +314,16 @@ if (process.env.RENDER === "true") {
     console.log("⏭️ Migrations ignorées : environnement non Render");
 }
 
-/** Pool de connexion + Drizzle */
-const connection = mysql.createPool({
-    host: DB_CONFIG.host,
-    user: DB_CONFIG.user,
-    password: DB_CONFIG.password,
-    database: DB_CONFIG.database,
-    port: DB_CONFIG.port,
-    waitForConnections: true,
-    connectionLimit: 10,
-});
+/** Pool de connexion PostgreSQL + Drizzle */
+const connectionString = `postgresql://${DB_CONFIG.user}:${DB_CONFIG.password}@${DB_CONFIG.host}:${DB_CONFIG.port}/${DB_CONFIG.database}`;
+const connection = postgres(connectionString, { max: 10 });
 
-export const db = drizzle(connection, { schema, mode: 'default' });
+export const db = drizzle(connection, { schema });
 
-// test de connexion
-connection.getConnection()
-    .then(conn => {
-        console.log(`✅ Connecté à MySQL (${DB_CONFIG.database})`);
-        conn.release();
+// Test de connexion
+connection`SELECT 1`
+    .then(() => {
+        console.log(`✅ Connecté à PostgreSQL (${DB_CONFIG.database})`);
     })
     .catch(err => console.error('❌ Erreur de connexion :', err));
 
